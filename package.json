@@ -20,14 +20,15 @@
     "postbuild": "npm run build:docs",
     "watch": "NODE_ENV=development rollup -c --watch",
     "clean": "rm -rf build lib docs",
-    "prepublishOnly": "NODE_ENV=production npm run build",
+    "prepublishOnly": "NODE_ENV=production npm run build && npm run pubdocs",
     "prebuild:docs": "npm install",
     "build:docs": "GRAPHVIZ_DOT=\"$(which dot)\" typedoc --excludeNotExported --stripInternal --mode modules --out build/docs/api src/",
     "preserve": "npm run build:devtools",
     "serve": "NODE_ENV=development SERVE=true rollup -c",
     "predocs": "npm run build:config && npm run build:docs",
     "docs": "NODE_ENV=development SERVE=true SERVE_DOC=true rollup -c",
-    "prewatch": "npm run build:devtools"
+    "prewatch": "npm run build:devtools",
+    "pubdocs": "bin/deploy-docs.js"
   },
   "bin": {},
   "repository": {
@@ -55,6 +56,7 @@
     "jest": "^26.1.0",
     "jest-mock-proxy": "^3.0.0",
     "mermaid": "^8.5.2",
+    "node-fetch": "^2.6.0",
     "ramda": "^0.26.1",
     "rollup": "^2.21.0",
     "rollup-plugin-external-globals": "^0.5.0",

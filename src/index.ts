@@ -21,4 +21,4 @@ export {range,
     Sync, Async,
     Genable, GenUnion, FlatGen, GenType, Reducer,
     EnhancedGenerator, EnhancedAsyncGenerator, Enhanced
-} from 'genutils/src/generators'
+} from './generators'
