@@ -913,6 +913,9 @@ class Async_ implements GeneratorOps<Async> {
     }
 }
 
+/**
+ * Factory for synchronous generator operators. See [[GeneratorOps]] for details.
+ */
 const Async: GeneratorOps<Async> = new Async_();
 export {Async};
 

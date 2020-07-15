@@ -15,8 +15,18 @@ import type {Enhancements} from "./enhancements";
 import type {EnhancedGenerator} from "./sync";
 import type {EnhancedAsyncGenerator} from "./async";
 
+/**
+ * Selector type to select the types for synchronous generators.
+ */
 export type Sync = 'sync';
+/**
+ * Selector type to select the types for asynchronous generators.
+ */
 export type Async = 'async';
+
+/**
+ * Selector type to select the types for synchronous or asynchronous generators.
+ */
 export type SyncType = Sync | Async;
 
 

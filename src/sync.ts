@@ -925,6 +925,9 @@ export abstract class EnhancedGenerator<T = unknown, TReturn = any, TNext = unkn
     [Symbol.toStringTag]: 'EnhancedGenerator';
 }
 
+/**
+ * Factory for synchronous generator operators. See [[GeneratorOps]] for details.
+ */
 const Sync: GeneratorOps<Sync> = new Sync_();
 export {Sync};
 

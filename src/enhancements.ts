@@ -3,6 +3,23 @@
  * Copyright ©  by Bob Kerns. Licensed under MIT license
  */
 
+/**
+ * This provides the trampoline methods that are shared between synchronous and
+ * asynchronous enhanced generators. Methods dispatch to [[Sync]] or [[Async]]
+ * as appropriate.
+ *
+ * This becomes part of the prototype chain of enhanced generator instances. It does
+ * __not__ modify any global prototypes.
+ *
+ * You should not need to reference this directly. In Typescript, if you need to a
+ * type that covers both sync and async enhanced generators, use [[Enhanced]],
+ * or the [[GeneratorOps]] interface.
+ *
+ * @packageDocumentation
+ * @module enhancements
+ * @preferred
+ */
+
 import {Enhanced, FlatGen, Genable, GeneratorOps, GenIteratorResult, GenUnion, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapGen} from "./types";
 
 /**
@@ -11,6 +28,10 @@ import {Enhanced, FlatGen, Genable, GeneratorOps, GenIteratorResult, GenUnion, I
 
 export type {Enhanced} from './types';
 
+/**
+ * The trampoline methods that link enhanced generators to [[Sync]] or [[Async]]
+ * methods.
+ */
 export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
 
     abstract _impl: GeneratorOps<S>;

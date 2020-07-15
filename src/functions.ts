@@ -61,7 +61,8 @@ export const isAsyncGenerator = <T>(g: Genable<T, Async>|any): g is AsyncGenerat
  * and `Iterable`).
  *
  * If it is an `Iterator` but not `Iterable`, or `Iterable` but not `Iterator`, it is wrapped
- * in a generator.
+ * in a generator. This generator is __not__ enhanced. Use [[Sync.enhance]] on the result if
+ * you need an enhanced generator.
  * @param i
  */
 export function toGenerator<T>(i: Genable<T>): Generator<T> {
@@ -91,7 +92,8 @@ export function toGenerator<T>(i: Genable<T>): Generator<T> {
  * and `Iterable`).
  *
  * If it is an `AsyncIterator` but not `AsyncIterable`, or `AsyncIterable` but not `AsyncIterator`,
- * it is wrapped in an async generator.
+ * it is wrapped in an async generator. This generator is __not__ enhanced. Use [[Async.enhance]] on the result if
+ * you need an enhanced generator.
  * @param i
  */
 export function toAsyncGenerator<T>(i: Genable<T, Async>|Genable<T, Sync>): AsyncGenerator<T> {

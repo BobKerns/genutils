@@ -1,4 +1,10 @@
 {
   "cleanUrls": false,
-  "trailingSlash": true
+  "trailingSlash": true,
+  "public": "build/docs/api/",
+  "rewrites": [
+    {"source": "/",
+      "destination": "/index.html"
+    }
+  ]
 }
