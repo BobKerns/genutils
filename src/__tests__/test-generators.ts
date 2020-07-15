@@ -15,7 +15,10 @@
  * Test functions from the utils pkg
  */
 
-import {isGenable, isGenerator, EnhancedGenerator, range, isFunction, isIterator, isIterable, Sync, Async, SyncType, Enhanced} from "../generators";
+import {Sync, Async, SyncType} from "../generators";
+import {Enhanced} from "../enhancements";
+import {EnhancedGenerator} from '../sync';
+import {range} from '../range';
 
 /**
  * A functional version of the throw statement.
@@ -128,112 +131,6 @@ describe('TestGen', () => {
 
     test('return', () => {
         testReturn(g => g);
-    });
-});
-
-describe('range', () => {
-    test('simple',() => expect([...range(0, 5)])
-        .toEqual([0, 1, 2, 3, 4]));
-    test('asArray',() => expect(range(0, 5).asArray())
-        .toEqual([0, 1, 2, 3, 4]));
-    test('map',() => expect(range(0, 5).map(n => 2 * n).asArray())
-        .toEqual([0, 2, 4, 6, 8]));
-    test('filter',() => expect(range(0, 10).filter(n => n % 2 === 1).asArray())
-        .toEqual([1, 3, 5, 7, 9]));
-    test('some negative',() => expect(range(0, 5).some(n => n == 7))
-        .toBeFalsy());
-    test('some positive',() => expect(range(0, 5).some(n => n == 3))
-        .toBeTruthy());
-    test('every negative',() => expect(range(0, 5).every(n => n > 3))
-        .toBeFalsy());
-    test('every positive',() => expect(range(0, 5).every(n => n < 5))
-        .toBeTruthy());
-});
-
-describe('Predicates', () => {
-    function *nullGen() {}
-
-    test('isGenerator undefined', () =>
-        expect(isGenerator(undefined))
-            .toBeFalsy());
-    test('isGenerator normal', () =>
-        expect(isGenerator(nullGen()))
-            .toBeTruthy());
-    test('isGenerator Mappable', () =>
-        expect(isGenerator(range(0, 3)))
-            .toBeTruthy());
-    test('isGenerator iterable', () =>
-        expect(isGenerator([0, 1, 2]))
-            .toBeFalsy());
-    test('isGenerator iterator', () =>
-        expect(isGenerator([0, 1, 2][Symbol.iterator]()))
-            .toBeFalsy());
-
-    test('isGenable undefined', () =>
-        expect(isGenable(undefined))
-            .toBeFalsy());
-    test('isGenable Generator', () =>
-        expect(isGenable(nullGen()))
-            .toBeTruthy());
-    test('isGenable Mappable', () =>
-        expect(isGenable(range(0, 3)))
-            .toBeTruthy());
-    test('isGenable Iterable', () =>
-        expect(isGenable([0, 1, 2]))
-            .toBeTruthy());
-    test('isGenable Iterator', () =>
-        expect(isGenable([0, 1, 2][Symbol.iterator]()))
-            .toBeTruthy());
-    test('isGenable Other', () =>
-        expect(isGenable(() => 7))
-            .toBeFalsy());
-
-    test('isIterator undefined', () =>
-        expect(isIterator(undefined))
-            .toBeFalsy());
-    test('isIterator yes', () =>
-        expect(isIterator([][Symbol.iterator]()))
-            .toBeTruthy());
-    test('isIterator no', () =>
-        expect(isIterator([]))
-            .toBeFalsy());
-    test('isIterator generator', () =>
-        expect(isIterator(nullGen()))
-            .toBeTruthy());
-
-    test('isIterable undefined', () =>
-        expect(isIterable(undefined))
-            .toBeFalsy());
-    test('isIterable yes', () =>
-        expect(isIterable({next() { return {done: true}}} ))
-            .toBeFalsy());
-    test('isIterable no', () =>
-        expect(isIterable([]))
-            .toBeTruthy());
-    test('isIterable generator', () =>
-        expect(isIterable(nullGen()))
-            .toBeTruthy());
-
-    test('isFunction undefined', () =>
-        expect(isFunction(undefined))
-            .toBeFalsy());
-    test('isFunction yes', () =>
-        expect(isFunction(() => 5))
-            .toBeTruthy());
-    test('isFunction no', () =>
-        expect(isFunction(5))
-            .toBeFalsy());
-
-    test('isFunction guard', () => {
-        let x: number | ((g: number) => boolean) = _ => true;
-        let y: number | ((g: any) => number) = _ => 8;
-        // This should be happy
-        // noinspection JSUnusedLocalSymbols
-        const b: (g: number) => boolean = (isFunction(x) ? x : () => true);
-        // This should be a type mismatch
-        // @ts-expect-error
-        // noinspection JSUnusedLocalSymbols
-        const c: (g: number) => boolean = (isFunction(y) ? y : () => true);
     });
 });
 

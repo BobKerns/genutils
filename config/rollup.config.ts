@@ -15,7 +15,7 @@ import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
 import externalGlobals from "rollup-plugin-external-globals";
-import serve from "rollup-plugin-serve";
+import {join, dirname, basename, extname} from 'path';
 
 /**
  * The visualizer plugin fails to set the plugin name. We wrap it to remedy that.
@@ -32,8 +32,6 @@ const visualizer = (opts?: Partial<VisualizerOptions>) => {
 const mode = process.env.NODE_ENV;
 // noinspection JSUnusedLocalSymbols
 const dev = mode === 'development';
-const serve_mode = process.env.SERVE && dev;
-const serve_doc = process.env.SERVE_DOC && serve_mode;
 
 /**
  * Avoid non-support of ?. optional chaining.
@@ -56,32 +54,30 @@ const pkg: Package  = require('../package.json');
  * Compute the list of outputs from [[package.json]]'s fields
  * @param p the [[package.json]] declaration
  */
-export const outputs = (p: Package) => flatMap((e: OutputOptions) => (e.file ? [e] : []),
-    [
-        {
-            file: p.browser,
-            name: p.name,
-            format: 'umd',
-            sourcemap: true,
-            globals: {
-                katex: "katex",
-                d3: "d3",
-                "@observablehq/stdlib": "observablehq"
-                // "ramda": "ramda",
-                // "gl-matrix": "glMatrix"
+export const outputs = (p: Package) => (s: string, n: string) => {
+    const dest = (f: string) =>
+        join(dirname(f), basename(s, extname(s)) + extname(f));
+    return flatMap((e: OutputOptions) => (e.file ? [e] : []),
+        [
+            {
+                file: dest(p.browser!),
+                name: n,
+                format: 'umd',
+                sourcemap: true,
+                globals: {}
+            },
+            {
+                format: 'cjs',
+                file: dest(p.main!),
+                sourcemap: true
+            },
+            {
+                format: 'esm',
+                file: dest(p.module!),
+                sourcemap: true
             }
-        },
-        {
-            format: 'cjs',
-            file: p.main,
-            sourcemap: true
-        },
-        {
-            format: 'esm',
-            file: p.module,
-            sourcemap: true
-        }
-    ]) as OutputOptions;
+        ]) as OutputOptions;
+};
 
 /**
  * Compute the set of main entrypoints from [[package.json]].
@@ -114,9 +110,9 @@ const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =
         ? /node_modules/.test(id)
         : !/^\./.test(id));
 
-const options: RollupOptions = {
-    input:'./src/index.ts',
-    output: outputs(pkg),
+const options: (src: string, name: string) => RollupOptions = (src, name) => ({
+    input: src,
+    output: outputs(pkg)(src, name),
     external: checkExternal,
     plugins: [
         resolve({
@@ -148,18 +144,17 @@ const options: RollupOptions = {
         visualizer({
             filename: "build/build-stats.html",
             title: "Build Stats"
-        }),
-        ...serve_mode ? [
-            serve({
-                open: !!serve_doc,
-                verbose: true,
-                port: 5000,
-                contentBase: '',
-                openPage: '/docs/api/index.html'
-            })
-        ] : []
+        })
     ]
-};
+});
 
 // noinspection JSUnusedGlobalSymbols
-export default options;
+export default [
+    options('./src/index.ts', 'genutils'),
+    options('./src/functions.ts', 'functions'),
+    options('./src/range.ts', 'range'),
+    options('./src/enhancements.ts', 'enhancements'),
+    options('./src/async.ts', 'async'),
+    options('./src/sync.ts', 'sync'),
+    options('./src/generators.ts', 'generators')
+    ];

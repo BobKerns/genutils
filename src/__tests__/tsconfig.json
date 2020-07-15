@@ -3,7 +3,9 @@
   "extends": "../tsconfig.json",
   "files": [
     "error-handling.ts",
-    "test-generators.ts"
+    "test-generators.ts",
+    "test-functions.ts",
+    "test-range.ts"
   ],
   "include": ["*.ts"],
   "exclude": ["node_modules"],

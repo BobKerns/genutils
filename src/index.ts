@@ -13,12 +13,16 @@
  */
 
 
-export {range,
+export {
     isIterable, isIterator, toIterable, toIterator, toIterableIterator,
     toGenerator, isGenerator, isGenable, isIterableIterator,
     isAsyncIterable, isAsyncIterator, toAsyncIterable, toAsyncIterator, toAsyncIterableIterator,
-    toAsyncGenerator, isAsyncGenerator, isAsyncGenable, isAsyncIterableIterator,
-    Sync, Async,
-    Genable, GenUnion, FlatGen, GenType, Reducer,
-    EnhancedGenerator, EnhancedAsyncGenerator, Enhanced
-} from './generators'
+    toAsyncGenerator, isAsyncGenerator, isAsyncGenable, isAsyncIterableIterator
+} from './functions';
+export {range} from './range';
+export {
+    Sync, Async, SyncType
+} from './generators';
+export {
+    Genable, GenUnion, FlatGen, GenType, Reducer
+} from './types';
