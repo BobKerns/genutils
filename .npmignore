@@ -20,5 +20,6 @@ _config.yml
 .idea/
 CHANGELOG.md
 README.md
+serve.json
 docdest/
 imports/

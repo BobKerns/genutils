@@ -23,3 +23,8 @@ type guard functions.
 
 The [[range]]<!-- @IGNORE PREVIOUS: link --> function provides an enhanced generator
 of numerical values.
+
+To import these modules, append the path '/lib/{*esm*,*cjs*,*umd*}/__module__', where
+* esm for ECMAscript modules
+* cjs for Node.js when not using modules
+* umd for browsers when not using modules.
