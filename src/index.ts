@@ -1,8 +1,8 @@
 /*
- * @module NpmRollupTemplate
+ * @module genutils
  * Copyright 2020 by Bob Kerns. Licensed under MIT license.
  *
- * Github: https://github.com/BobKerns/npm-typescript-rollup-template
+ * Github: https://github.com/BobKerns/genutils
  */
 
 /**

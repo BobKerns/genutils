@@ -1,6 +1,6 @@
 /**
  * @module genutils
- * Copyright ©  by Bob Kerns. Licensed under MIT license
+ * Copyright 2020 by Bob Kerns. Licensed under MIT license
  */
 
 /**
