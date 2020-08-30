@@ -27,3 +27,9 @@ export {
 export {
     Genable, GenUnion, FlatGen, GenType, Reducer
 } from './types';
+
+export {
+    eventToGenerator, Controller, Queue, QueueFactory,
+    QueueUniqueSpec, KeyFn,
+    queue1, queueSticky, queueOldest, queueNewest, queueUnique, queueUpdateShallow
+} from './events';

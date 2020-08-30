@@ -106,7 +106,7 @@ const dbg: any = {name: 'dbg'};
  * @param resolved
  */
 const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =>
-    !/gl-matrix|glMatrix/i.test(id) && (resolved
+    !/denque/i.test(id) && (resolved
         ? /node_modules/.test(id)
         : !/^\./.test(id));
 
@@ -156,5 +156,6 @@ export default [
     options('./src/enhancements.ts', 'enhancements'),
     options('./src/async.ts', 'async'),
     options('./src/sync.ts', 'sync'),
-    options('./src/generators.ts', 'generators')
+    options('./src/generators.ts', 'generators'),
+    options('./src/events.ts', 'events')
     ];
