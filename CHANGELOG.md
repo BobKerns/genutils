@@ -1,5 +1,10 @@
 # Changelog
 
+# Version 0.1.39
+__date: 2020-08-30__
+
+* Update to Typescript 4.0.2
+
 # Version 0.1.38
 __date: 2020-08-30__
 
