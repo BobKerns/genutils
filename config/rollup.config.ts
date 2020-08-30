@@ -36,7 +36,7 @@ const dev = mode === 'development';
 /**
  * Avoid non-support of ?. optional chaining.
  */
-const DISABLE_TERSER = true;
+const DISABLE_TERSER = false;
 
 /**
  * A rough description of the contents of [[package.json]].

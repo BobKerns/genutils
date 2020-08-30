@@ -1,5 +1,13 @@
 # Changelog
 
+# Version 0.1.38
+__date: 2020-08-30__
+
+* Add merge and sort operations
+* Add eventToGenerator function and related QueueFactory functions.
+* Update dev dependencies.
+* Reenable Terser
+
 # Version 0.1.37
 __date: 2020-07-15__
 
