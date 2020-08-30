@@ -637,6 +637,25 @@ export interface GeneratorOps<S extends SyncType> {
      */
     join<T>(gen: Genable<T, S>, sep?: string): ReturnValue<string, S>;
     join<T>(genOrSeparator: Genable<T, S>|string, sep?: string): ReturnValue<string, S> | (<X>(gen: Genable<X>) => ReturnValue<string, S>);
+
+    /**
+     * Returns a new generator that returns values from each of the supplied sources as they are available.
+     * For [[Sync]] generators, these will be taken in round-robin fashion from each non-terminated
+     * generator, until all have terminated. For [[Async]] generators, they will be taken as they become
+     * available. The yielded values will not be distinguished by which which source they are taken; for
+     * that, another method will be supplied.
+     *
+     * Any calls to `Generator.throw()` or `Generator.return()` will be passed to all non-terminated
+     * sources.
+     * @param sources
+     */
+    merge<E extends any, G extends (Genable<E, S>)[] = (Genable<E, S>)[]>(...sources: G): Enhanced<E, S>;
+
+    /**
+     * Returns a function that sorts the supplied sources and returns a sorted array.
+     * @param cmp a comparison function
+     */
+    sort<E>(cmp?: (a: E, b: E) => number): (...sources: Genable<E, S>[]) => ReturnValue<E[], S>;
 //
     enhance<T>(gen: Genable<T, S>): Enhanced<T, S>;
 }

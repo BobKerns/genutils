@@ -13,7 +13,7 @@
 import type {Enhanced, FlatGen, Genable, GeneratorOps, GenOp, GenOpValue, GenUnion, IndexedFn, IndexedPredicate, Reducer, ReturnValue, UnwrapArray, UnwrapGen} from "./types";
 // Should be 'import type' but that makes TS insist it can't be a value here even after defining it.
 import {Sync} from './types';
-import {isGenable, isGenerator, isIterable, isIterator, toGenerator, toIterable, toIterator} from "./functions";
+import {doCatch, isGenable, isGenerator, isIterable, isIterator, toGenerator, toIterable, toIterator} from "./functions";
 import {Enhancements} from "./enhancements";
 
 /**
@@ -880,6 +880,66 @@ class Sync_ implements GeneratorOps<Sync> {
             return <X>(gen: Genable<X, Sync>) => this.join(gen, sep);
         }
         return [...toIterable(genOrSeparator)].join(sep);
+    }
+
+    /**
+     * Returns a new generator that returns values from each of the supplied sources as they are available.
+     * These will be taken in round-robin fashion from each non-terminated generator, until all have
+     * terminated. The yielded values will not be distinguished by which which source they are taken; for
+     * that, another method will be supplied.
+     *
+     * Any calls to `Generator.throw()` or `Generator.return()` will be passed to all non-terminated
+     * sources.
+     * @param sources
+     */
+    merge<E extends any, G extends (Genable<E, Sync>)[] = (Genable<E, Sync>)[]>(...sources: G): Enhanced<E, Sync> {
+        let self: Enhanced<E, Sync>;
+        let gens: (Iterator<E> | null)[] = sources.map(toIterator);
+        function* merge() {
+            let done = false;
+            let running = true;
+            let nv = undefined;
+            try {
+                while (running) {
+                    running = false;
+                    for (let i = 0; i < gens.length; i++) {
+                        const g = gens[i];
+                        if (g) {
+                            const r = g.next(nv);
+                            if (r.done) {
+                                gens[i] = null;
+                            } else {
+                                running = true;
+                                try {
+                                    nv = yield r.value;
+                                } catch (e) {
+                                    gens.forEach(doCatch(g => g?.throw?.(e)));
+                                }
+                            }
+                        }
+                    }
+                }
+                done = true;
+            } finally {
+                if (!done) {
+                    gens.forEach(doCatch(g => g?.return?.(self.returning)));
+                }
+            }
+            return self.returning;
+        }
+        return self = this.enhance(merge());
+    }
+
+    /**
+     * Returns a function that sorts the supplied sources and returns a sorted array.
+     * @param cmp a comparison function
+     */
+    sort<E>(cmp?: ((a: E, b: E) => number)) {
+        return (...sources:Genable<E>[]) => {
+            const result: E[] = [];
+            sources.forEach(s => this.enhance(s).forEach(e => result.push(e)));
+            return result.sort(cmp);
+        }
     }
 
     /**

@@ -140,7 +140,6 @@ export function toIterator<T>(i: Genable<T>): Iterator<T> {
  */
 export function toAsyncIterator<T>(i: Genable<T, Async>): AsyncIterator<T> {
     if (isAsyncGenerator(i)) return i;
-    if (isAsyncIterator(i)) return i;
     if (isAsyncIterable(i)) {
         return i[Symbol.asyncIterator]();
     } else if (isIterable(i)) {
@@ -337,3 +336,18 @@ export const isIterableIterator = <K>(i: Iterable<K>|Iterator<K>|any): i is Iter
 export const isAsyncIterableIterator = <K>(i: Iterable<K>|Iterator<K>|any): i is IterableIterator<K> =>
     isAsyncIterator(i) && isAsyncIterable(i);
 
+/**
+ * Wrap a function in a catch block.
+ * @param f
+ * @param onError Called when an error is thrown. The return value is returned. If not supplied, undefined is returned.
+ */
+export const doCatch = <A extends any[], R>(f: (...args: A) => R, onError?: (e: Error) => R):
+    ((...args: A) => (R | undefined)) => {
+    return (...args: A) => {
+        try {
+            return f(...args);
+        } catch (e) {
+            return onError?.(e);
+        }
+    };
+};

@@ -148,7 +148,7 @@ class Async_ implements GeneratorOps<Async> {
                             while (true) {
                                 const r = await gen.next(nr);
                                 if (r.done) return r.value;
-                                const v = await f.call(thisArg, r.value, idx++);
+                                const v = await f.call(thisArg, await r.value, idx++);
                                 try {
                                     nr = yield v;
                                 } catch (e) {
@@ -897,6 +897,83 @@ class Async_ implements GeneratorOps<Async> {
             return <X>(gen: Genable<X, Async>) => this.join(gen, sep);
         }
         return Promise.resolve(this.enhance(genOrSeparator).asArray()).then (a => a.join(sep));
+    }
+
+
+    /**
+     * Returns a new generator that returns values from each of the supplied sources as they are available.
+     * Values will be taken as they become available from any source.
+     * The yielded values will not be distinguished by which which source they are taken; for
+     * that, another method will be supplied.
+     *
+     * Any calls to `Generator.throw()` or `Generator.return()` will be passed to all non-terminated
+     * sources.
+     * @param sources
+     */
+    merge<E extends any, G extends (Genable<E, Async>)[] = (Genable<E, Async>)[]>(...sources: G): Enhanced<E, Async> {
+        let self: Enhanced<E, Async>;
+        let done: (r: () => IteratorReturnResult<any>) => void;
+        const donePromise = new Promise<() => IteratorResult<E>>(r => (done = r));
+        let active: (null | Promise<() => (null | IteratorResult<E>)>)[];
+        let gens: AsyncIterator<E>[] = [];
+        const wrap = (g: Genable<E, Async>, k: number) => {
+            const ag = toAsyncIterator(g);
+            gens[k] = ag;
+            const handle = (val: IteratorResult<E>) => (): null | IteratorResult<E> => {
+                if (val.done) {
+                    active[k] = null;
+                    // Unless this is the last active generator, we return null to indicate
+                    // to the loop to go on to the next one.
+                    return --activeCount > 0
+                        ? null
+                        : (done(() => val), val);
+                } else {
+                    active[k] = ag.next().then(handle);
+                    return val;
+                }
+            };
+            return ag.next().then(handle);
+        };
+        let activeCount = sources.length;
+        active = [...sources.map(wrap), donePromise];
+        async function* merge(): AsyncGenerator<E> {
+            try {
+                let nv: E | undefined = undefined;
+                while (activeCount) {
+                    if (nv !== undefined) {
+                        nv = (await (yield nv) as E);
+                    } else {
+                        const race: Promise<() => (null | IteratorResult<E>)>[] = [];
+                        active.forEach(a => a && race.push(a))
+                        const result = (await Promise.race(race))();
+                        if (result) {
+                            if (result.done) {
+                                return result.value;
+                            }
+                            nv = (yield result.value) as E;
+                        }
+                    }
+                }
+            } finally {
+                if (activeCount) {
+                    for (let i = 0; i < sources.length; i++) {
+                        (active[i] === null ? null : gens[i])?.return?.(self.returning);
+                    }
+                }
+            }
+        }
+        return self = Async.enhance(merge());
+    }
+
+    /**
+     * Returns a function that sorts the supplied sources and returns a sorted array.
+     * @param cmp a comparison function
+     */
+    sort<E>(cmp?: ((a: E, b: E) => number)) {
+        return async (...sources:Genable<E, Async>[]) => {
+            const array: E[] = await this.merge<E, Genable<E, Async>[]>(...sources).asArray();
+            return array.sort(cmp);
+        };
     }
 
     /**

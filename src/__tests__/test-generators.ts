@@ -58,6 +58,12 @@ function gen(max: number): TestGen<number, Sync> {
     return Sync.enhance(result);
 }
 
+const cmp = (a: number, b: number) => a < b
+    ? -1
+    : a === b
+        ? 0
+        : 1;
+
 const testThrow = (f: (g: TestGen<number, Sync>) => Generator<any>, value: any = 0) => {
     const tg = gen(3);
     const g = f(tg);
@@ -289,7 +295,7 @@ describe('Enhanced Generators', () => {
             test('static sep', () =>
                 expect(Sync.join(['a', 'b'], ', '))
                     .toEqual('a, b'));
-            test('static nullsep', () =>
+            test('static null sep', () =>
                 expect(Sync.join(['a', 'b'], ''))
                     .toEqual('ab'));
             test('static sep functional', () =>
@@ -358,6 +364,34 @@ describe('Enhanced Generators', () => {
 
             test('return', async () =>
                 testReturn(g => g.zip(range(0, 5)), [0, 0]));
+        });
+
+        describe('sort', () => {
+            test('sort', () =>
+                expect(Sync.enhance([3, 1, 5]).sort(cmp))
+                    .toEqual([1, 3, 5]));
+        });
+
+        describe('merge', () => {
+            test('empty', () =>
+                expect(Sync.merge().asArray())
+                    .toEqual([]));
+            test('all empty', () =>
+                expect(Sync.merge(range(0, 0), range(0, -0)).asArray())
+                    .toEqual([]));
+            test('single', () =>
+                expect(Sync.merge(range(0, 5)).asArray())
+                    .toEqual([0, 1, 2, 3, 4]));
+            test('simple', () =>
+                expect(Sync.merge(range(0, 5), range(10, 15)).asArray())
+                    .toEqual([0, 10, 1, 11, 2, 12, 3, 13, 4, 14]));
+            test('uneven left', () =>
+                expect(Sync.merge(range(0, 3), range(10, 15)).asArray())
+                    .toEqual([0, 10, 1, 11, 2, 12, 13, 14]));
+            test('uneven right', () =>
+                expect(Sync.merge(range(0, 5), range(10, 13)).asArray())
+                    .toEqual([0, 10, 1, 11, 2, 12, 3, 4]));
+
         });
     });
 
@@ -521,7 +555,7 @@ describe('Enhanced Generators', () => {
             test('static sep', async () =>
                 expect(await Async.join(['a', 'b'], ', '))
                     .toEqual('a, b'));
-            test('static nullsep', async () =>
+            test('static null sep', async () =>
                 expect(await Async.join(['a', 'b'], ''))
                     .toEqual('ab'));
             test('static sep functional', async () =>
@@ -591,6 +625,34 @@ describe('Enhanced Generators', () => {
 
             test('return', async () =>
                 testReturnAsync(g => g.zip(range(0, 5)), [0, 0]));
+        });
+
+        describe('sort', () => {
+            test('sort', async () =>
+                expect(await Async.enhance([3, 1, 5]).sort(cmp))
+                    .toEqual([1, 3, 5]));
+        });
+
+        describe('merge', () => {
+            test('empty', async () =>
+                expect(await Async.merge().sort())
+                    .toEqual([]));
+            test('all empty', async () =>
+                expect(await Async.merge<number>(range(0, 0), range(0, -0)).sort(cmp))
+                    .toEqual([]));
+            test('single', async () =>
+                expect(await Async.merge<number>(range(0, 5)).sort(cmp))
+                    .toEqual([0, 1, 2, 3, 4]));
+            test('simple',
+                async () => expect(await Async.merge<number>(range(0, 5), range(10, 15))
+                    .sort(cmp))
+                .toEqual([0, 1, 2, 3, 4, 10, 11, 12, 13, 14]));
+            test('uneven left', async () =>
+                expect(await Async.merge<number>(range(0, 3), range(10, 15)).sort(cmp))
+                    .toEqual([0, 1, 2, 10, 11, 12, 13, 14]));
+            test('uneven right', async () =>
+                expect(await Async.merge<number>(range(0, 5), range(10, 13)).sort(cmp))
+                    .toEqual([0, 1, 2, 3, 4, 10, 11, 12]));
         });
     });
 });

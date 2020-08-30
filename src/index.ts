@@ -17,7 +17,8 @@ export {
     isIterable, isIterator, toIterable, toIterator, toIterableIterator,
     toGenerator, isGenerator, isGenable, isIterableIterator,
     isAsyncIterable, isAsyncIterator, toAsyncIterable, toAsyncIterator, toAsyncIterableIterator,
-    toAsyncGenerator, isAsyncGenerator, isAsyncGenable, isAsyncIterableIterator
+    toAsyncGenerator, isAsyncGenerator, isAsyncGenable, isAsyncIterableIterator,
+    doCatch
 } from './functions';
 export {range} from './range';
 export {

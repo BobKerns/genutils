@@ -5,15 +5,15 @@
 
 /**
  * This provides the trampoline methods that are shared between synchronous and
- * asynchronous enhanced generators. Methods dispatch to [[Sync]] or [[Async]]
+ * asynchronous enhanced generators. Methods dispatch to {!link Sync} or {@link Async}
  * as appropriate.
  *
  * This becomes part of the prototype chain of enhanced generator instances. It does
  * __not__ modify any global prototypes.
  *
- * You should not need to reference this directly. In Typescript, if you need to a
- * type that covers both sync and async enhanced generators, use [[Enhanced]],
- * or the [[GeneratorOps]] interface.
+ * You should not need to reference this directly. In Typescript, if you need a
+ * type that covers both sync and async enhanced generators, use {@link Enhanced} (for,
+ * generators) or the {@link GeneratorOps} interface (for the functional interface).
  *
  * @packageDocumentation
  * @module enhancements
@@ -230,5 +230,13 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      */
     join(sep?: string): ReturnValue<string, S> {
         return this._impl.join(this, sep);
+    }
+
+    /**
+     * Sorts the supplied values and returns a sorted array.
+     * @param cmp a comparison function
+     */
+    sort(cmp?: (a: T, b: T) => number): ReturnValue<T[], S> {
+        return this._impl.sort(cmp)(this);
     }
 }
