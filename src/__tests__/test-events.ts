@@ -10,7 +10,7 @@
 import {Controller, eventToGenerator, queue1, queueOldest, queueSticky, queueUnique, queueUpdateShallow} from "../events";
 import {isAsyncGenerator, isFunction} from "../functions";
 
-const delay = <V extends any>(n: number, v?: V) => new Promise<V>(resolve => setTimeout( () => resolve(v), n));
+const delay = <V extends any>(n: number, v?: V) => new Promise<V | undefined>(resolve => setTimeout( () => resolve(v), n));
 
 describe('Event generator', () => {
     describe('create', () => {

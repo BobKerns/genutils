@@ -121,12 +121,14 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
         }),
         typescript({
              tsconfig: 'src/tsconfig.json',
-             include: "src/*.ts",
-             objectHashIgnoreUnknownHack: true,
+             include: "*.ts",
              verbosity: 1,
              cacheRoot: "./build/rts2-cache",
              // false = Put the declaration files into the regular output in lib/
-             useTsconfigDeclarationDir: false
+             useTsconfigDeclarationDir: false,
+            tsconfigOverride: {
+                "tsBuildInfoFile": `../build/tsbuild-info-${basename(src, ".d.ts")}`,
+            }
          }),
         commonjs({
             extensions: [".js", ".ts"]
