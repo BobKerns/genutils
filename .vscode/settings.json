@@ -1,0 +1,18 @@
+{
+    "files.exclude": {
+        ".circleci": true,
+        ".idea": true,
+        "assets": true,
+        ".travis.yml": true,
+        "rollup.config.js": true,
+        "LICENSE": true,
+        "jest.config.js": true,
+        ".npmignore": true,
+        ".editorconfig": true,
+        "node_modules": true,
+        "devtools": true,
+        "lib": true,
+        "build": true
+    },
+    "workspace.isHidden": false
+}
