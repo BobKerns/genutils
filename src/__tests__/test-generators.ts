@@ -31,7 +31,7 @@ export const Throw = (msg: string | Error = 'Error'): never => {
     throw new Error(msg);
 }
 
-type TestGen<T, S extends SyncType> =  Enhanced<T, S> & {
+type TestGen<T, S extends SyncType> =  Enhanced<T, S, void, void> & {
     did_return?: boolean;
     did_throw?: Error;
 };
@@ -147,7 +147,7 @@ describe('Enhanced Generators', () => {
 
         test('of union', () => {
             // Verifies that differing types work and infer a suitable union.
-            const v: EnhancedGenerator<number | string> = Sync.of(3, 7, 'foo');
+            const v: EnhancedGenerator<number | string, void, void> = Sync.of(3, 7, 'foo');
             const a: Array<number | string> = v.asArray();
             expect(a).toEqual([3, 7, 'foo']);
         });
@@ -181,20 +181,20 @@ describe('Enhanced Generators', () => {
                     .toEqual([1, 8, 'fred']));
 
             test('multiple', () =>
-                expect(Sync.enhance([1, 8, 'fred']).concat(['ginger'], [], [7]).asArray())
+                expect(Sync.enhance([1, 8, 'fred']).concat<string|number, unknown, unknown>(['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
             test('static', () =>
                 expect(Sync.concat([1, 8, 'fred'], ['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
-            test('throw', () => testThrow(g => Sync.enhance<number>([]).concat(g)))
-            test('return', () => testReturn(g => Sync.enhance<number>([]).concat(g)))
+            test('throw', () => testThrow(g => Sync.enhance<number, void, void>([]).concat(g)))
+            test('return', () => testReturn(g => Sync.enhance<number, void, void>([]).concat(g)))
         });
 
         describe('reduce', () => {
             test('w/ init', () =>
-                expect(Sync.enhance([1, 2, 3, 4]).reduce((acc, v) => acc + v, 5))
+                expect(Sync.enhance([1, 2, 3, 4]).reduce((acc: number, v: number) => acc + v, 5))
                     .toBe(15));
 
             test('w/o init', () =>
@@ -436,20 +436,20 @@ describe('Enhanced Generators', () => {
                     .toEqual([1, 8, 'fred']));
 
             test('multiple', async () =>
-                expect(await Async.enhance([1, 8, 'fred']).concat(['ginger'], [], [7]).asArray())
+                expect(await Async.enhance([1, 8, 'fred']).concat<string|number, void, void>(['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
             test('static', async () =>
                 expect(await Async.concat([1, 8, 'fred'], ['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
-            test('throw', () => testThrowAsync(g => Async.enhance<number>([]).concat(g)))
-            test('return', () => testReturnAsync(g => Async.enhance<number>([]).concat(g)))
+            test('throw', () => testThrowAsync(g => Async.enhance<number, void, void>([]).concat(g)))
+            test('return', () => testReturnAsync(g => Async.enhance<number, void, void>([]).concat(g)))
         });
 
         describe('reduce', () => {
             test('w/ init', async () =>
-                expect(await Async.enhance([1, 2, 3, 4]).reduce((acc, v) => acc + v, 5))
+                expect(await Async.enhance([1, 2, 3, 4]).reduce((acc: number, v: number) => acc + v, 5))
                 .toBe(15));
 
             test('w/o init', async () =>
@@ -638,20 +638,20 @@ describe('Enhanced Generators', () => {
                 expect(await Async.merge().sort())
                     .toEqual([]));
             test('all empty', async () =>
-                expect(await Async.merge<number>(range(0, 0), range(0, -0)).sort(cmp))
+                expect(await Async.merge<number, void, void>(range(0, 0), range(0, -0)).sort(cmp))
                     .toEqual([]));
             test('single', async () =>
-                expect(await Async.merge<number>(range(0, 5)).sort(cmp))
+                expect(await Async.merge<number, void, void>(range(0, 5)).sort(cmp))
                     .toEqual([0, 1, 2, 3, 4]));
             test('simple',
-                async () => expect(await Async.merge<number>(range(0, 5), range(10, 15))
+                async () => expect(await Async.merge<number, void, void>(range(0, 5), range(10, 15))
                     .sort(cmp))
                 .toEqual([0, 1, 2, 3, 4, 10, 11, 12, 13, 14]));
             test('uneven left', async () =>
-                expect(await Async.merge<number>(range(0, 3), range(10, 15)).sort(cmp))
+                expect(await Async.merge<number, void, void>(range(0, 3), range(10, 15)).sort(cmp))
                     .toEqual([0, 1, 2, 10, 11, 12, 13, 14]));
             test('uneven right', async () =>
-                expect(await Async.merge<number>(range(0, 5), range(10, 13)).sort(cmp))
+                expect(await Async.merge<number, void, void>(range(0, 5), range(10, 13)).sort(cmp))
                     .toEqual([0, 1, 2, 3, 4, 10, 11, 12]));
         });
     });

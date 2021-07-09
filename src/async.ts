@@ -10,10 +10,15 @@
  * @preferred
  */
 
-import type {AsyncGenable, AsyncIndexedFn, Enhanced, FlatGen, Genable, GeneratorOps, GenOp, GenOpValue, GenUnion, IndexedFn, IndexedPredicate, Reducer, ReturnValue, UnwrapArray, UnwrapGen} from "./types";
+import type {
+    Enhanced, FlatGen, Genable, GeneratorOps, GenOp, GenOpValue, IndexedFn, IndexedPredicate, Reducer, ReturnValue, UnwrapArray
+    } from "./types";
 // Should be 'import type' but that makes TS insist it can't be a value here even after defining it.
 import {Async} from './types';
-import {isAsyncGenable, isAsyncGenerator, isAsyncIterable, isAsyncIterator, isGenable, isIterable, toAsyncGenerator, toAsyncIterable, toAsyncIterator} from "./functions";
+import {
+    isAsyncGenable, isAsyncGenerator, isAsyncIterable, isAsyncIterator, isGenable, isIterable,
+    toAsyncGenerator, toAsyncIterable, toAsyncIterator
+} from "./functions";
 import {Enhancements} from "./enhancements";
 
 /**
@@ -26,11 +31,15 @@ class Async_ implements GeneratorOps<Async> {
      * Return a generator that yields the supplied values.
      * @param values
      */
-    of<T extends any[]>(...values: T) : Enhanced<UnwrapArray<T>, Async> {
+    of<T extends any[], TReturn, TNext>(...values: T):
+        Enhanced<UnwrapArray<T>, Async, TReturn, TNext>
+    {
         return this.enhance(values);
     }
 
-    async asArray<T>(gen: AsyncGenable<T>): Promise<T[]> {
+    async asArray<T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>):
+        Promise<T[]>
+    {
         const it = toAsyncIterator(gen);
         const result: T[] = []
         while (true) {
@@ -42,16 +51,26 @@ class Async_ implements GeneratorOps<Async> {
         }
     }
 
-    limit<T>(max: number, gen: AsyncGenable<T>): Enhanced<T, Async>;
-    limit(max: number): GenOp<Async>;
-    limit<T>(max: number, gen?: AsyncGenable<T>): Enhanced<T, Async> | GenOp<Async> {
-        let self: EnhancedAsyncGenerator<T>;
-        async function *limit<X>(gen: AsyncIterator<X>) {
-            let nr = undefined;
+    limit<T, TReturn, TNext>(max: number, gen: Genable<T, Async, TReturn, TNext>):
+        Enhanced<T, Async, TReturn, TNext>;
+
+    limit(max: number):
+        GenOp<Async>;
+
+    limit<T, TReturn, TNext>(
+        max: number,
+        gen?: Genable<T, Async, TReturn, TNext>
+    ):
+         Enhanced<T, Async, TReturn, TNext>
+         | GenOp<Async>
+    {
+        let self: EnhancedAsyncGenerator<T, TReturn, TNext>;
+        async function *limit<X, XReturn = X, XNext = X>(gen: AsyncIterator<X, XReturn, XNext>) {
+            let nr: XNext;
             let limited: boolean = false;
             try {
                 for (let i = 0; i < max; i++) {
-                    const r: any = await gen.next(nr);
+                    const r: any = await gen.next(nr!);
                     if (r.done) {
                         return r.value;
                     }
@@ -75,7 +94,8 @@ class Async_ implements GeneratorOps<Async> {
         if (gen) {
             return self = this.enhance(limit(toAsyncIterator(gen)));
         }
-        return <X>(gen: AsyncGenable<X>) => this.enhance(limit(toAsyncIterator(gen)));
+        return <X, XReturn = X, XNext = X>(gen: Genable<X, Async, XReturn, XNext>) =>
+            this.enhance<X, XReturn, XNext>(limit(toAsyncIterator(gen)));
     }
 
     /**
@@ -86,7 +106,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param gen the generator.
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: AsyncIndexedFn<T>, thisArg: any, gen: AsyncGenable<T>): Promise<void>;
+    forEach<T, TReturn, TNext>(f: IndexedFn<T, undefined, Async>, thisArg: any, gen: Genable<T, Async, TReturn, TNext>):
+        Promise<undefined>;
+
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
@@ -94,7 +116,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param gen the generator.
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: AsyncIndexedFn<T>, gen: AsyncGenable<T>): Promise<void>;
+    forEach<T, TReturn, TNext>(f: IndexedFn<T, undefined, Async>, gen: Genable<T, Async, TReturn, TNext>):
+        Promise<undefined>;
+
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
@@ -102,43 +126,75 @@ class Async_ implements GeneratorOps<Async> {
      * @param thisArg Optional value to be supplied as context `this` for function _f_.
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: AsyncIndexedFn<T>, thisArg?: any): (gen: AsyncGenable<T>) => Promise<void>;
+    forEach<T>(f: IndexedFn<T, undefined, Async>, thisArg?: any):
+        <TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>) =>
+            Promise<undefined>;
+
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
      * @param f
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: AsyncIndexedFn<T>): (gen: AsyncGenable<T>, thisArg?: any) => void;
-    forEach<T>(f: AsyncIndexedFn<T>, thisArgOrGen?: AsyncGenable<T>|any, gen?: AsyncGenable<T>)
-        : Promise<void> | ((gen: AsyncGenable<T>) => void | Promise<void>) {
-        const forEach = async (f: AsyncIndexedFn<T>, thisArg: any, gen: AsyncGenable<T>) => {
-            const it = toAsyncIterator(gen);
-            let idx = 0;
-            while (true) {
-                const r = await it.next();
-                if (r.done) return r.value;
-                await f.call(thisArg, r.value, idx++);
-            }
-        };
-        if (gen) return forEach(f, thisArgOrGen, gen);
-        if (isAsyncGenable<T>(thisArgOrGen)) return forEach(f, undefined, thisArgOrGen);
-        return (gen: AsyncGenable<T>, thisArg?: any) => forEach(f, thisArg ?? thisArgOrGen, gen);
-    }
+    forEach<T>(f: IndexedFn<T, undefined, Async>):
+        <TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>, thisArg?: any) =>
+            Promise<undefined>;
 
-    map<T, V>(f: AsyncIndexedFn<T, V>): GenOpValue<Async, T, [any?], Enhanced<V, Async>>;
-    map<T, V>(f: AsyncIndexedFn<T, V>, thisArg?: any): GenOpValue<Async, T, [], Enhanced<V, Async>>;
-    map<T, V>(f: AsyncIndexedFn<T, V>, gen: AsyncGenable<T>): Enhanced<V, Async>;
-    map<T, V>(f: AsyncIndexedFn<T, V>, thisArg: any, gen: AsyncGenable<T>): Enhanced<V, Async>;
-    map<T, V>(f: AsyncIndexedFn<T, V>, thisArg?: any | AsyncGenable<T>, iter?: AsyncGenable<T>):
-        EnhancedAsyncGenerator<V>
-        | ((gen: AsyncGenable<T>) => EnhancedAsyncGenerator<V>)
-        | ((gen: AsyncGenable<T>, thisArg?: any) => EnhancedAsyncGenerator<V>)
+    forEach<T, TReturn = T, TNext = T>(
+        f: IndexedFn<T, undefined, Async>,
+        thisArgOrGen?: Genable<T, Async, TReturn, TNext>|any,
+        gen?: Genable<T, Async, TReturn, TNext>
+        ): Promise<undefined>
+            | (<XReturn = TReturn, XNext = TNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+                                                Promise<undefined>)
     {
-        const map = (thisArg: any, iter: AsyncGenable<T>) => {
+        const forEach = async <XReturn, XNext>(
+                                f: IndexedFn<T, XReturn, Async>,
+                                thisArg: any,
+                                gen: Genable<T, Async, XReturn, XNext>
+                            ): Promise<undefined> =>
+            {
+                const it = toAsyncIterator(gen);
+                let idx = 0;
+                while (true) {
+                    const r = await it.next();
+                    if (r.done) return;
+                    await f.call(thisArg, r.value, idx++);
+                }
+            };
+        if (gen) return forEach(f, thisArgOrGen, gen!);
+        if (isAsyncGenable<T, TReturn, TNext>(thisArgOrGen)) return forEach(f, undefined, thisArgOrGen);
+        return <XReturn = T, XNext = T>(gen: Genable<T, Async, XReturn, XNext>, thisArg?: any) =>
+            forEach(f, thisArg ?? thisArgOrGen, gen);
+    }
+
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Async>):
+            GenOpValue<Async, T, V>;
+
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Async>, thisArg?: any):
+            GenOpValue<Async, T, V>;
+
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Async>, gen: Genable<T, Async, TReturn, TNext>):
+            Enhanced<V, Async, TReturn, TNext>;
+
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Async>, thisArg: any, gen: Genable<T, Async, TReturn, TNext>):
+            Enhanced<V, Async, TReturn, TNext>;
+
+    map<T, V,TReturn, TNext>(
+        f: IndexedFn<T, V, Async>,
+        thisArg?: any | Genable<T, Async, TReturn, TNext>,
+        iter?: Genable<T, Async, TReturn, TNext>
+    ):
+        EnhancedAsyncGenerator<V, TReturn, TNext>
+        | (<XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+                EnhancedAsyncGenerator<V, XReturn, XNext>)
+        | (<XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, thisArg?: any) =>
+                EnhancedAsyncGenerator<V, XReturn, XNext>)
+    {
+        const map = <XReturn = T, XNext = T>(thisArg: any, iter: Genable<T, Async, XReturn, XNext>) => {
             const gen = toAsyncGenerator(iter);
-            let self: EnhancedAsyncGenerator<V>;
-            async function* map(): AsyncGenerator<V> {
+            let self: EnhancedAsyncGenerator<V, XReturn, XNext>;
+            async function* map(): AsyncGenerator<V, XReturn, XNext> {
                 let nr: any = undefined;
                 let idx = 0;
                 while (true) {
@@ -169,8 +225,9 @@ class Async_ implements GeneratorOps<Async> {
             return self = this.enhance(map());
         };
         if (iter) return map(thisArg, iter);
-        if (isAsyncGenable<T>(thisArg)) return map(undefined, thisArg);
-        return (gen: AsyncGenable<T>, genThisArg?: any) => map(genThisArg ?? thisArg, gen);
+        if (isAsyncGenable<T, TReturn, TNext>(thisArg)) return map(undefined, thisArg);
+        return <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, genThisArg?: any) =>
+                    map(genThisArg ?? thisArg, gen);
     }
 
     /**
@@ -181,7 +238,8 @@ class Async_ implements GeneratorOps<Async> {
      * @param f
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Async>): GenOpValue<Async, T, [any?], Enhanced<T, Async>>;
+    filter<T>(f: IndexedPredicate<T, Async>):
+        GenOpValue<Async, T, T>;
 
     /**
      * Return a function that filters a [[Genable]] and yields a new [[EnhancedGenerator]]
@@ -192,7 +250,8 @@ class Async_ implements GeneratorOps<Async> {
      * @param thisArg Optional context to be passed as `this` to the predicate.
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Async>, thisArg: any): GenOpValue<Async, T, [], Enhanced<T, Async>>;
+    filter<T>(f: IndexedPredicate<T, Async>, thisArg: any):
+        GenOpValue<Async, T, T>;
 
     /**
      * Return a new [[EnhancedGenerator]] that yields only the values that satisfy the predicate _f_.
@@ -202,7 +261,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param iter a [[Genable|Genable<T>]]
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Async>, iter: Genable<T, Async>): Enhanced<T, Async>;
+    filter<T, TReturn, TNext>(f: IndexedPredicate<T, Async>, iter: Genable<T, Async, TReturn, TNext>):
+        Enhanced<T, Async, TReturn, TNext>;
+
     /**
      * Return a new [[EnhancedGenerator]] that yields only the values that satisfy the predicate _f_.
      *
@@ -212,7 +273,8 @@ class Async_ implements GeneratorOps<Async> {
      * @param iter a [[Genable|Genable<T>]]
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Async>, thisArg: any, iter: Genable<T, Async>): Enhanced<T, Async>;
+    filter<T, TReturn, TNext>(f: IndexedPredicate<T, Async>, thisArg: any, iter: Genable<T, Async, TReturn, TNext>):
+        Enhanced<T, Async, TReturn, TNext>;
 
     /**
      * Return a function that filters a [[Genable]] and yields a new [[EnhancedGenerator]]
@@ -224,15 +286,18 @@ class Async_ implements GeneratorOps<Async> {
      * @param iter the [[Genable]] to filter.
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Async>, thisArg?: any | Genable<T, Async>, iter?: Genable<T, Async>):
-        Enhanced<T, Async>
-        | GenOpValue<Async, T, [], Enhanced<T, Async>>
-        | GenOpValue<Async, T, [any?], Enhanced<T, Async>>
+    filter<T, TReturn, TNext>(
+        f: IndexedPredicate<T, Async>,
+        thisArg?: any | Genable<T, Async, TReturn, TNext>,
+        iter?: Genable<T, Async, TReturn, TNext>
+    ):
+        Enhanced<T, Async, TReturn, TNext>
+        | GenOpValue<Async, T, T>
     {
-        const filter = (thisArg: any, iter: Genable<T, Async>) => {
-            const gen = toAsyncGenerator(iter);
-            let self: EnhancedAsyncGenerator<T, Async>;
-            async function* filter<V>(f: IndexedPredicate<T, Async>): AsyncGenerator<T> {
+        const filter = <XReturn, XNext>(thisArg: any, iter: Genable<T, Async, XReturn, XNext>) => {
+            const gen = toAsyncGenerator<T, XReturn, XNext>(iter);
+            let self: EnhancedAsyncGenerator<T, XReturn, XNext>;
+            async function* filter<V>(f: IndexedPredicate<T, Async>): AsyncGenerator<T, XReturn, XNext> {
                 let nr: any = undefined;
                 let idx = 0;
                 while (true) {
@@ -265,8 +330,9 @@ class Async_ implements GeneratorOps<Async> {
         };
 
         if (iter) return filter(thisArg, iter);
-        if (isAsyncGenable<T>(thisArg)) return filter(undefined, thisArg);
-        return (gen: Genable<T, Async>, genThisArg?: any) => filter(genThisArg ?? thisArg, gen);
+        if (isAsyncGenable<T, TReturn, TNext>(thisArg)) return filter(undefined, thisArg);
+        return <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, genThisArg?: any) =>
+            filter<XReturn, XNext>(genThisArg ?? thisArg, gen);
     }
 
 
@@ -278,7 +344,10 @@ class Async_ implements GeneratorOps<Async> {
      * The return type is currently over-broad
      * @param depth
      */
-    flat<T, D extends number = 1>(depth: D): <X>(gen: Genable<X>) => Enhanced<Async, FlatGen<X, D>>;
+    flat<D extends number>(depth: D):
+        <T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>) =>
+            Enhanced<FlatGen<T, D>, Async, TReturn, TNext>;
+
     /**
      * Flatten the values yielded by the generator to level _depth_. Produces a generator that yields
      * the individual values at each level in depth-first order. Any iterable (including Array) or iterator
@@ -288,7 +357,10 @@ class Async_ implements GeneratorOps<Async> {
      * @param depth
      * @param gen
      */
-    flat<T, D extends number = 1>(depth: D, gen: Genable<T>): Enhanced<Async, FlatGen<T, D>>;
+
+    flat<D extends number, T, TReturn, TNext>(depth: D, gen: Genable<T, Async, TReturn, TNext>):
+        Enhanced<FlatGen<T, D>, Async, TReturn, TNext>;
+
     /**
      * Flatten the values yielded by the generator to level _depth_. Produces a generator that yields
      * the individual values at each level in depth-first order. Any iterable (including Array) or iterator
@@ -298,17 +370,20 @@ class Async_ implements GeneratorOps<Async> {
      * @param gen
      * @param depth default = 1
      */
-    flat<T, D extends number = 1>(gen: Genable<T>, depth?: D): Enhanced<Async, FlatGen<T, D>>;
-    flat<T, D extends number = 1>(depth: D|Genable<T>, gen?: Genable<T> | D):
-        Enhanced<Async, FlatGen<T, D>>
-        | (<X>(gen: Genable<X>) => Enhanced<Async, FlatGen<X, D>>)
+    flat<D extends number, T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>, depth?: D):
+        Enhanced<FlatGen<T, D>, Async, TReturn, TNext>;
+
+    flat<D extends number, T, TReturn, TNext>(depth: D|Genable<T, Async, TReturn, TNext>, gen?: Genable<T, Async, TReturn, TNext> | D):
+        Enhanced<FlatGen<T, D>, Async, TReturn, TNext>
+        | (<X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                Enhanced<FlatGen<X, D>, Async, XReturn, XNext>)
     {
-        const flat = <X>(depth: D, gen: Genable<X, Async>) => {
-            let self: Enhanced<Async, FlatGen<X, D>>;
+        const flat = <X, XReturn, XNext>(depth: D, gen: Genable<X, Async, XReturn, XNext>) => {
+            let self: Enhanced<FlatGen<X, D>, Async, XReturn, XNext>;
             const gens = new Set<AsyncGenerator>();
             if (isAsyncGenerator(gen)) gens.add(gen);
 
-            async function* flat<D extends number>(it: AsyncIterator<unknown>, depth: D): AsyncGenerator<FlatGen<X, D>> {
+            async function* flat<D extends number, Y, YReturn, YNext>(it: AsyncIterator<Y, YReturn, YNext>, depth: D): AsyncGenerator<FlatGen<Y, D>, YReturn, YNext> {
                 let nr: any = undefined;
                 while (true) {
                     // noinspection LoopStatementThatDoesntLoopJS
@@ -359,7 +434,8 @@ class Async_ implements GeneratorOps<Async> {
                     throw new TypeError(`Invalid Genable: ${gen}`);
                 }
             }
-            return <X>(gen: Genable<X, Async>) => flat(depth, gen);
+            return <X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                flat(depth, gen);
         } else if (isAsyncGenable(depth)) {
             return flat((gen ?? 1) as D, depth);
         }
@@ -376,7 +452,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param f
      * @param depth
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Async>, depth: D): (gen: Genable<T, Async>) => Enhanced<FlatGen<R, D>, Async>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T>(f: IndexedFn<T, R, Async>, depth: D):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+            Enhanced<R, Async, XReturn, XNext>;
 
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
@@ -387,7 +465,9 @@ class Async_ implements GeneratorOps<Async> {
      * The return type is currently over-broad
      * @param f
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Async>): (gen: Genable<T, Async>, depth?: D) => Enhanced<FlatGen<R, D>, Async>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T>(f: IndexedFn<T, R, Async>):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, depth?: D) =>
+            Enhanced<R, Async, XReturn, XNext>;
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
      * Produces a generator that yields the individual values at each level in depth-first order. Any iterable
@@ -397,7 +477,12 @@ class Async_ implements GeneratorOps<Async> {
      * @param f
      * @param gen
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Async>, gen: Genable<T, Async>): Enhanced<FlatGen<R, D>, Async>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(
+            f: IndexedFn<T, R, Async>,
+            gen: Genable<T, Async, TReturn, TNext>
+    ):
+        Enhanced<R, Async, TReturn, TNext>;
+
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
      * Produces a generator that yields the individual values at each level in depth-first order. Any iterable
@@ -408,36 +493,57 @@ class Async_ implements GeneratorOps<Async> {
      * @param depth
      * @param gen
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Async>, depth: D, gen: Genable<T, Async>): Enhanced<FlatGen<R, D>, Async>;
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Async>, depthOrGen?: D | Genable<T, Async>, gen?: Genable<T, Async>):
-        Enhanced<FlatGen<R, D>, Async>
-        | (<X, Y = FlatGen<T, D>>(gen: Genable<X, Async>) => Enhanced<Y, Async>)
-        | (<X, Y = FlatGen<T, D>>(gen: Genable<X, Async>, depth?: D) => Enhanced<Y, Async>)
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(
+        f: IndexedFn<T, R, Async>,
+        depth: D,
+        gen: Genable<T, Async, TReturn, TNext>
+    ):
+        Enhanced<R, Async, TReturn, TNext>;
+
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(
+        f: IndexedFn<T, R, Async>,
+        depthOrGen?: D | Genable<T, Async, TReturn, TNext>,
+        gen?: Genable<T, Async, TReturn, TNext>
+    ):
+        Enhanced<R, Async, TReturn, TNext>
+        | (
+            <Y extends FlatGen<T, D>, X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                Enhanced<Y, Async, XReturn, XNext>
+        )
+        | (
+            <Y extends FlatGen<T, D>, X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>, depth?: D) =>
+                Enhanced<Y, Async, XReturn, XNext>
+        )
     {
-        const flatMap = <X>(depth: D, gen: Genable<X, Async>) => {
-            let self: Enhanced<FlatGen<X, D>, Async>;
+        const flatMap = <X, XReturn, XNext>(depth: D, gen: Genable<X, Async, XReturn, XNext>) => {
+            let self: Enhanced<FlatGen<X, D>, Async, XReturn, XNext>;
             let idx = 0;
 
-            async function* flatMap<D extends number>(it: AsyncIterator<unknown>, depth: D): AsyncGenerator<FlatGen<X, D>, undefined, unknown | undefined> {
+            async function* flatMap<D extends number, Y, YReturn, YNext>(
+                    it: AsyncIterator<Y, YReturn, YNext>, depth: D
+                ):
+                    AsyncGenerator<FlatGen<T, D>, YReturn, YNext>
+                {
                 let nr: any = undefined;
                 while (true) {
                     // noinspection LoopStatementThatDoesntLoopJS
                     while (true) {
                         try {
                             while (true) {
-                                const r = await it.next(nr as undefined);
+                                const r = await it.next(nr);
                                 if (r.done) return r.value;
-                                const v = f(r.value as FlatGen<T, D>, idx++);
+                                const v = await f(r.value as FlatGen<T, D>, idx++);
                                 try {
-                                    if (isAsyncIterator(v)) {
+                                    if (isAsyncIterator<unknown, YReturn, YNext>(v)) {
                                         if (depth > 1) {
                                             yield* flatMap(v, depth - 1);
                                         } else if (depth === 1) {
-                                            yield* toAsyncGenerator(v);
+                                            const it = toAsyncIterator(v);
+                                            yield* toAsyncGenerator(it);
                                         } else {
                                             yield v;
                                         }
-                                    } else if (isAsyncIterable(v) || isIterable(v)) {
+                                    } else if (isAsyncIterable<unknown, YReturn, YNext>(v) || isIterable<unknown, YReturn, YNext>(v)) {
                                         if (depth > 1) {
                                             yield* flatMap(toAsyncIterator(v), depth - 1);
                                         } else if (depth === 1) {
@@ -472,7 +578,8 @@ class Async_ implements GeneratorOps<Async> {
         } else if (isAsyncGenable( depthOrGen)) {
             return flatMap(1 as D, depthOrGen);
         }
-        return <X>(gen: Genable<X, Async>, depth?: D) => flatMap(depthOrGen ?? depth ?? 1 as D, gen);
+        return <X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>, depth?: D) =>
+            flatMap(depthOrGen ?? depth ?? 1 as D, gen);
     }
 
     /**
@@ -481,7 +588,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param start
      * @param end
      */
-    slice<T>(start: number, end: number): <X>(iter: Genable<X, Async>) => Enhanced<X, Async>;
+    slice<T>(start: number, end: number):
+        <X, XReturn, XNext>(iter: Genable<X, Async, XReturn, XNext>) =>
+            Enhanced<X, Async, XReturn, XNext>;
     /**
      * Return a new [[EnhancedGenerator]] that only yields the indicated values, skipping _start_ initial values
      * and continuing until the _end_.
@@ -489,12 +598,23 @@ class Async_ implements GeneratorOps<Async> {
      * @param end
      * @param iter
      */
-    slice<T>(start: number, end: number, iter: Genable<T, Async>): Enhanced<T, Async>;
-    slice<T>(start: number, end: number, iter?: Genable<T, Async>):
-        Enhanced<T, Async>
-        | (<X>(gen: Genable<X, Async>) => Enhanced<X, Async>)
+    slice<T, TReturn, TNext>(start: number, end: number, iter: Genable<T, Async, TReturn, TNext>):
+        Enhanced<T, Async, TReturn, TNext>;
+
+    slice<T, TReturn, TNext>(
+        start: number,
+        end: number,
+        iter?: Genable<T, Async, TReturn, TNext>
+    ):
+        Enhanced<T, Async, TReturn | undefined, TNext>
+        | (
+            <X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                Enhanced<X, Async, XReturn | undefined, XNext>
+        )
     {
-        const slice = <X>(iter: Genable<X, Async>) => {
+        const slice = <X, XReturn, XNext>(iter: Genable<X, Async, XReturn, XNext>):
+            Enhanced<X, Async, XReturn | undefined, XNext> =>
+        {
             const it = toAsyncIterator(iter);
             async function* slice(start: number, end: number) {
                 for (let i = 0; i < start; i++) {
@@ -504,11 +624,11 @@ class Async_ implements GeneratorOps<Async> {
                 if (end === Number.POSITIVE_INFINITY) {
                     yield* toAsyncIterable(it);
                 } else {
-                    let nv: any = undefined;
+                    let nv: XNext;
                     while (true) {
                         try {
                             for (let i = start; i < end; i++) {
-                                const r = await it.next(nv);
+                                const r = await it.next(nv!);
                                 if (r.done) return r.value;
                                 try {
                                     nv = yield r.value;
@@ -521,7 +641,7 @@ class Async_ implements GeneratorOps<Async> {
                                 }
                             }
                         } finally {
-                            const x = await it.return?.(null);
+                            const x = await it.return?.();
                             // If the wrapped generator aborted the return, we will, too.
                             if (x && !x.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -530,6 +650,7 @@ class Async_ implements GeneratorOps<Async> {
                         }
                     }
                 }
+                return;
             }
             return this.enhance(slice(start, end));
         };
@@ -543,13 +664,16 @@ class Async_ implements GeneratorOps<Async> {
      * Ensures that any supplied generators are terminated when this is terminated.
      * @param gens zero or more additional [[Genable]] to provide values.
      */
-    concat<T extends Genable<any, Async>[]>(...gens: T): Enhanced<GenUnion<T>, Async> {
-        let self: Enhanced<GenUnion<T>, Async>;
-        async function* concat() {
+    concat<T, TReturn, TNext>(...gens: Array<Genable<T, Async, TReturn, TNext>>):
+        Enhanced<T, Async, TReturn | void, TNext>
+    {
+        let self: Enhanced<T, Async, TReturn | void, TNext>;
+        async function* concat(): AsyncGenerator<T, TReturn | void, TNext> {
             let i = 0;
             try {
                 for (; i < gens.length; i++) {
-                    yield* toAsyncIterable(gens[i]);
+                    const it = toAsyncIterable(gens[i]);
+                    yield* it;
                 }
             } finally {
                 // Terminate any remaining generators.
@@ -571,7 +695,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param f
      * @param gen
      */
-    reduce<A, T>(f: Reducer<A, T, T>, gen: Genable<T, Async>): A;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, Async>, gen: Genable<T, Async, TReturn, TNext>):
+        A;
+
     /**
      *
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
@@ -580,7 +706,10 @@ class Async_ implements GeneratorOps<Async> {
      *
      * @param f
      */
-    reduce<A, T>(f: Reducer<A, T, T, Async>): (gen: Genable<T, Async>) => A;
+    reduce<A, T>(f: Reducer<A, T, T, Async>):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+            A;
+
     /**
      *
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
@@ -589,7 +718,10 @@ class Async_ implements GeneratorOps<Async> {
      *
      * @param f
      */
-    reduce<A, T>(f: Reducer<A, T, A, Async>): (init: A, gen: Genable<T, Async>) => A;
+    reduce<A, T>(f: Reducer<A, T, A, Async>):
+        <XReturn, XNext>(init: A, gen: Genable<T, Async, XReturn, XNext>) =>
+            A;
+
     /**
      * Reduces **gen** like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array")
      * is omitted because there is no array.
@@ -597,7 +729,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param init
      * @param gen
      */
-    reduce<A, T>(f: Reducer<A, T, A, Async>, init: A, gen: Genable<T, Async>): A;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, A, Async>, init: A, gen: Genable<T, Async, TReturn, TNext>):
+        A;
+
     /**
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
      * `Array.prototype.reduce`. The 3rd argument to the reducing function ("array")
@@ -607,19 +741,33 @@ class Async_ implements GeneratorOps<Async> {
      * @param f
      * @param init
      */
-    reduce<A, T>(f: Reducer<A, T, A, Async>, init: A): (gen: Genable<T, Async>) => A;
-    reduce<A, T>(
+    reduce<A, T>(f: Reducer<A, T, A, Async>, init: A):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+            A;
+
+    reduce<A, T, TReturn, TNext>(
         f: Reducer<A, T, A | T, Async>,
-        initOrGen?: A | Genable<T, Async>,
-        gen?: Genable<T, Async>
+        initOrGen?: A | Genable<T, Async, TReturn, TNext>,
+        gen?: Genable<T, Async, TReturn, TNext>
     ): A
         | Promise<A>
-        | ((gen: Genable<T, Async>) => A | Promise<A>)
-        | ((f: (acc: A, v: T) => A, init: A) => A | Promise<A>)
-        | ((f: (acc: A | T, v: T) => A) => A | Promise<A>)
+        | (
+            (gen: Genable<T, Async, TReturn, TNext>) =>
+                A | Promise<A>
+        )
+        | (
+            (f: (acc: A, v: T) => A, init: A) =>
+                A | Promise<A>
+        )
+        | (
+            (f: (acc: A | T, v: T) => A) =>
+                A | Promise<A>
+        )
     {
 
-        const reduce = async (init: A | PromiseLike<A> | undefined, it: AsyncIterator<T>): Promise<A> => {
+        const reduce = async <XReturn, XNext>(init: A | PromiseLike<A> | undefined, it: AsyncIterator<T, XReturn, XNext>):
+            Promise<A> =>
+        {
             let acc: A | T | undefined = await init;
             if (acc === undefined) {
                 const r = await it.next();
@@ -637,7 +785,8 @@ class Async_ implements GeneratorOps<Async> {
         } else if (isAsyncGenable(initOrGen)) {
             return reduce(undefined, toAsyncIterator(initOrGen));
         }
-        return (gen: Genable<T, Async>, init?: A) => reduce(init ?? initOrGen, toAsyncIterator(gen));
+        return (gen: Genable<T, Async, TReturn, TNext>, init?: A) =>
+            reduce(init ?? initOrGen, toAsyncIterator(gen));
     }
 
     /**
@@ -648,7 +797,10 @@ class Async_ implements GeneratorOps<Async> {
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    some<T>(p: IndexedPredicate<T, Async>, thisArg?: any): (gen: Genable<T, Async>) => ReturnValue<boolean, Async>;
+    some<T, TReturn, TNext>(p: IndexedPredicate<T, Async>, thisArg?: any):
+        (gen: Genable<T, Async, TReturn, TNext>) =>
+            ReturnValue<boolean, Async>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -656,7 +808,10 @@ class Async_ implements GeneratorOps<Async> {
      * If the generator terminates without having satisfied the predicate, `false` is returned.
      * @param p predicate to apply to each yielded value.
      */
-    some<T>(p: IndexedPredicate<T, Async>): (gen: Genable<T, Async>, thisArg?: any) => ReturnValue<boolean, Async>;
+    some<T>(p: IndexedPredicate<T, Async>):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, thisArg?: any) =>
+            ReturnValue<boolean, Async>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -665,7 +820,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param p predicate to apply to each yielded value.
      * @param gen the generator
      */
-    some<T>(p: IndexedPredicate<T, Async>, gen: Genable<T, Async>): ReturnValue<boolean, Async>;
+    some<T, TReturn, TNext>(p: IndexedPredicate<T, Async>, gen: Genable<T, Async, TReturn, TNext>):
+        ReturnValue<boolean, Async>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -675,14 +832,21 @@ class Async_ implements GeneratorOps<Async> {
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      * @param gen the generator
      */
-    some<T>(p: IndexedPredicate<T, Async>, thisArg: any, gen: Genable<T, Async>): ReturnValue<boolean, Async>;
-    some<T>(
+    some<T, TReturn, TNext>(p: IndexedPredicate<T, Async>, thisArg: any, gen: Genable<T, Async, TReturn, TNext>):
+        ReturnValue<boolean, Async>;
+
+    some<T, TReturn, TNext>(
         pred: IndexedPredicate<T, Async>,
-        thisOrGen?: any | Genable<T, Async>,
-        gen?: Genable<T, Async>
-    ): ReturnValue<boolean, Async> | ((gen: Genable<T, Async>) => ReturnValue<boolean, Async>)
+        thisOrGen?: any | Genable<T, Async, TReturn, TNext>,
+        gen?: Genable<T, Async, TReturn, TNext>
+    ):
+        ReturnValue<boolean, Async>
+        | (
+            (gen: Genable<T, Async, TReturn, TNext>) =>
+                ReturnValue<boolean, Async>
+        )
     {
-        const some = async (thisArg: any, it: AsyncIterator<T>): Promise<boolean> => {
+        const some = async <XReturn, XNext>(thisArg: any, it: AsyncIterator<T, XReturn, XNext>): Promise<boolean> => {
             let i = 0;
             while (true) {
                 const r = await it.next();
@@ -693,7 +857,7 @@ class Async_ implements GeneratorOps<Async> {
         if (isAsyncGenable(gen)) {
             return some(thisOrGen, toAsyncIterator(gen));
         } else if (isAsyncGenable(gen)) {
-            return (gen: Genable<T, Async>, thisArg?: any) =>
+            return (gen: Genable<T, Async, TReturn, TNext>, thisArg?: any) =>
                 some(thisArg ?? thisOrGen, toAsyncIterator(gen));
         }
         throw new Error(`Invalid argument to some: ${gen ?? thisOrGen}`);
@@ -708,7 +872,9 @@ class Async_ implements GeneratorOps<Async> {
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    every<T>(p: IndexedPredicate<T, Async>, thisArg?: any): (gen: Genable<T, Async>) => ReturnValue<boolean, Async>;
+    every<T>(p: IndexedPredicate<T, Async>, thisArg?: any):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+            ReturnValue<boolean, Async>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -717,7 +883,9 @@ class Async_ implements GeneratorOps<Async> {
      * If the generator terminates without having failed the predicate, `true` is returned.
      * @param p predicate to apply to each yielded value.
      */
-    every<T>(p: IndexedPredicate<T, Async>): (gen: Genable<T, Async>, thisArg?: any) => ReturnValue<boolean, Async>;
+    every<T>(p: IndexedPredicate<T, Async>):
+        <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, thisArg?: any) =>
+            ReturnValue<boolean, Async>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -727,7 +895,8 @@ class Async_ implements GeneratorOps<Async> {
      * @param p predicate to apply to each yielded value.
      * @param gen the generator
      */
-    every<T>(p: IndexedPredicate<T, Async>, gen: Genable<T, Async>): ReturnValue<boolean, Async>;
+    every<T, TReturn, TNext>(p: IndexedPredicate<T, Async>, gen: Genable<T, Async,TReturn, TNext>):
+        ReturnValue<boolean, Async>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -738,14 +907,23 @@ class Async_ implements GeneratorOps<Async> {
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      * @param gen the generator
      */
-    every<T>(p: IndexedPredicate<T, Async>, thisArg: any, gen: Genable<T, Async>): ReturnValue<boolean, Async>;
-    every<T>(
+    every<T, TReturn, TNext>(p: IndexedPredicate<T, Async>, thisArg: any, gen: Genable<T, Async, TReturn, TNext>):
+        ReturnValue<boolean, Async>;
+
+    every<T, TReturn, TNext>(
         pred: IndexedPredicate<T, Async>,
-        genOrThis?: any | Genable<T, Async>,
-        gen?: Genable<T, Async>
-    ): ReturnValue<boolean, Async> | ((gen: Genable<T, Async>) => ReturnValue<boolean, Async>)
+        genOrThis?: any | Genable<T, Async, TReturn, TNext>,
+        gen?: Genable<T, Async, TReturn, TNext>
+    ):
+        ReturnValue<boolean, Async>
+        | (
+            <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>) =>
+                ReturnValue<boolean, Async>
+        )
     {
-        const every = async (thisArg: any, it: AsyncIterator<T>): Promise<boolean> => {
+        const every = async <XReturn, XNext>(thisArg: any, it: AsyncIterator<T, XReturn, XNext>):
+            Promise<boolean> =>
+        {
             let i = 0;
             while (true) {
                 const r = await it.next();
@@ -756,7 +934,7 @@ class Async_ implements GeneratorOps<Async> {
         if (isAsyncGenable(gen)) {
             return every(genOrThis, toAsyncIterator(gen));
         } else if (isGenable(gen)) {
-            return (gen: Genable<T, Async>, thisArg?: any) =>
+            return <XReturn, XNext>(gen: Genable<T, Async, XReturn, XNext>, thisArg?: any) =>
                 every(thisArg ?? genOrThis, toAsyncIterator(gen));
         }
         throw new Error(`Invalid argument to every: ${gen ?? genOrThis}`);
@@ -769,19 +947,24 @@ class Async_ implements GeneratorOps<Async> {
      * @param gen
      * @param max
      */
-    repeatLast<T>(gen: Genable<T, Async>, max: number = Number.POSITIVE_INFINITY): Enhanced<T | undefined, Async> {
+    repeatLast<T, TReturn, TNext>(
+        gen: Genable<T, Async, TReturn, TNext>,
+        max: number = Number.POSITIVE_INFINITY
+    ):
+        Enhanced<T, Async, TReturn | undefined, TNext>
+    {
         const it = toAsyncIterator(gen);
-        let nr: any;
-        let self: EnhancedAsyncGenerator<T | undefined>;
+        let nr: TNext;
+        let self: Enhanced<T, Async, TReturn | undefined, TNext>;
 
-        async function* repeatLast() {
+        async function* repeatLast(): AsyncGenerator<T, TReturn | undefined, TNext> {
             try {
-                let last = undefined
+                let last: T;
                 while (true) {
-                    const r = await it.next(nr)
+                    const r = await it.next(nr as unknown as TNext)
                     if (r.done) break;
                     try {
-                        nr = yield last = r.value;
+                        nr = yield (last = r.value);
                     } catch (e) {
                         const re = await it.throw?.(e);
                         if (re) {
@@ -792,11 +975,12 @@ class Async_ implements GeneratorOps<Async> {
                 }
                 for (let i = 0; i < max; i++) {
                     // Important to await at the expected point for consistent behavior.
-                    yield await last;
+                    yield await last!;
                 }
             } finally {
                 await it.return?.(self.returning);
             }
+            return;
         }
 
         return self = this.enhance(repeatLast());
@@ -809,8 +993,10 @@ class Async_ implements GeneratorOps<Async> {
      * @param value the value to repeat
      * @param repetitions The number repetitions; the default is infinite.
      */
-    repeat<T>(value: T, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T, Async> {
-        async function* repeat() {
+    repeat<T, TNext>(value: T, repetitions: number = Number.POSITIVE_INFINITY):
+        Enhanced<T, Async, void, TNext>
+    {
+        async function* repeat(): AsyncGenerator<T, void, TNext> {
             for (let i = 0; i < repetitions; i++) {
                 // Important to await at the expected point for consistent behavior.
                 yield await value;
@@ -827,16 +1013,18 @@ class Async_ implements GeneratorOps<Async> {
      * [[EnhancedGenerator.repeatLast]].
      * @param gens
      */
-    zip<G extends (Genable<any, Async>)[]>(...gens: G) {
+    zip<T, TReturn, TNext>(...gens: Array<Genable<T, Async, TReturn, TNext>>):
+        Enhanced<Array<T>, Async, TReturn, TNext>
+    {
         if (gens.length === 0) return this.enhance([]);
         const its = gens.map(toAsyncIterator);
         let done = false;
-        let self: Enhanced<UnwrapGen<Async, G>, Async>;
+        let self: Enhanced<Array<T>, Async, TReturn, TNext>;
 
-        async function* zip2(): AsyncGenerator<UnwrapGen<Async, G>> {
+        async function* zip2(): AsyncGenerator<Array<T>, TReturn, TNext> {
             try {
                 while (true) {
-                    let result: UnwrapGen<Async, G> = [] as unknown as UnwrapGen<Async, G>;
+                    let result: Array<T> = [];
                     for (const g of its) {
                         const r = await g.next();
                         if (r.done) {
@@ -881,24 +1069,36 @@ class Async_ implements GeneratorOps<Async> {
      * Returns a function that joins the elements produced by a [[Genable]], analogous to `Array.prototype.join`.
      * @param sep (default = ',')
      */
-    join(sep: string): <T>(gen: Genable<T, Async>) => ReturnValue<string, Async>;
+    join(sep: string):
+        <T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>) =>
+            ReturnValue<string, Async>;
 
     /**
      * Joins the elements produced by a [[Genable]], analogous to `Array.prototype.join`.
      * @param gen
      * @param sep
      */
-    join<T>(gen: Genable<T, Async>, sep?: string): ReturnValue<string, Async>;
-    join<T>(genOrSeparator: Genable<T, Async>|string, sep?: string):
-        ReturnValue<string, Async> | (<X>(gen: Genable<X, Async>) => ReturnValue<string, Async>)
+    join<T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>, sep?: string):
+        ReturnValue<string, Async>;
+
+    join<T, TReturn, TNext>(
+        genOrSeparator: Genable<T, Async, TReturn, TNext>|string,
+        sep?: string
+    ):
+        ReturnValue<string, Async>
+        | (
+            <X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                ReturnValue<string, Async>
+        )
     {
         if (typeof genOrSeparator === 'string') {
             sep = genOrSeparator;
-            return <X>(gen: Genable<X, Async>) => this.join(gen, sep);
+            return <X, XReturn, XNext>(gen: Genable<X, Async, XReturn, XNext>) =>
+                this.join(gen, sep);
         }
-        return Promise.resolve(this.enhance(genOrSeparator).asArray()).then (a => a.join(sep));
+        return Promise.resolve(this.enhance(genOrSeparator).asArray())
+            .then(a => a.join(sep));
     }
-
 
     /**
      * Returns a new generator that returns values from each of the supplied sources as they are available.
@@ -910,48 +1110,47 @@ class Async_ implements GeneratorOps<Async> {
      * sources.
      * @param sources
      */
-    merge<E extends any, G extends (Genable<E, Async>)[] = (Genable<E, Async>)[]>(...sources: G): Enhanced<E, Async> {
-        let self: Enhanced<E, Async>;
-        let done: (r: () => IteratorReturnResult<any>) => void;
-        const donePromise = new Promise<() => IteratorResult<E>>(r => (done = r));
-        let active: (null | Promise<() => (null | IteratorResult<E>)>)[];
-        let gens: AsyncIterator<E>[] = [];
-        const wrap = (g: Genable<E, Async>, k: number) => {
+    merge<T, TReturn, TNext>(...sources: Array<Genable<T, Async, TReturn, TNext>>):
+        Enhanced<T, Async, TReturn | void, TNext>
+    {
+        let self: Enhanced<T, Async, void | TReturn, TNext>;
+        let done: (r: IteratorReturnResult<TReturn>) => void;
+        const donePromise = new Promise<IteratorReturnResult<TReturn>>(r => (done = r));
+        let activeCount = sources.length;
+        let active: Array<Promise<IteratorResult<T, TReturn> | null>>;
+        const dead = new Promise<IteratorResult<T, TReturn>>(() => null); // Never completes
+        let gens: Array<AsyncIterator<T, TReturn, TNext>> = [];
+        const wrap = async (g: Genable<T, Async, TReturn, TNext>, k: number) => {
             const ag = toAsyncIterator(g);
             gens[k] = ag;
-            const handle = (val: IteratorResult<E>) => (): null | IteratorResult<E> => {
-                if (val.done) {
-                    active[k] = null;
-                    // Unless this is the last active generator, we return null to indicate
-                    // to the loop to go on to the next one.
-                    return --activeCount > 0
-                        ? null
-                        : (done(() => val), val);
-                } else {
-                    active[k] = ag.next().then(handle);
-                    return val;
-                }
-            };
-            return ag.next().then(handle);
-        };
-        let activeCount = sources.length;
-        active = [...sources.map(wrap), donePromise];
-        async function* merge(): AsyncGenerator<E> {
-            try {
-                let nv: E | undefined = undefined;
-                while (activeCount) {
-                    if (nv !== undefined) {
-                        nv = (await (yield nv) as E);
+            const handle = async (val: IteratorResult<T, TReturn>): Promise<IteratorResult<T, TReturn> | null> => {
+                    if (val.done) {
+                        active[k] = dead;
+                        // Unless this is the last active generator, we return null to indicate
+                        // to the loop to go on to the next one.
+                        return --activeCount > 0
+                            ? null
+                            : (done(val), val);
                     } else {
-                        const race: Promise<() => (null | IteratorResult<E>)>[] = [];
-                        active.forEach(a => a && race.push(a))
-                        const result = (await Promise.race(race))();
-                        if (result) {
-                            if (result.done) {
-                                return result.value;
-                            }
-                            nv = (yield result.value) as E;
+                        active[k] = ag.next().then(handle);
+                        return val;
+                    }
+            };
+            return (await ag.next().then(handle));
+        };
+        active = [...sources.map(wrap), donePromise];
+        async function* merge(): AsyncGenerator<T, TReturn | void, TNext> {
+            try {
+                let nv: TNext;
+                while (activeCount) {
+                    const race: Promise<IteratorResult<T, TReturn> | null>[] = [];
+                    active.forEach(a => race.push(a))
+                    const result = await (await Promise.race(race));
+                    if (result) {
+                        if (result.done) {
+                            return result.value;
                         }
+                        nv = (yield result.value);
                     }
                 }
             } finally {
@@ -969,9 +1168,9 @@ class Async_ implements GeneratorOps<Async> {
      * Returns a function that sorts the supplied sources and returns a sorted array.
      * @param cmp a comparison function
      */
-    sort<E>(cmp?: ((a: E, b: E) => number)) {
-        return async (...sources:Genable<E, Async>[]) => {
-            const array: E[] = await this.merge<E, Genable<E, Async>[]>(...sources).asArray();
+    sort<T>(cmp?: ((a: T, b: T) => number)) {
+        return async <TReturn, TNext>(...sources: Array<Genable<T, Async, TReturn, TNext>>) => {
+            const array: T[] = await this.merge(...sources).asArray();
             return array.sort(cmp);
         };
     }
@@ -980,13 +1179,17 @@ class Async_ implements GeneratorOps<Async> {
      * Enhance an existing generator (or iterator or iterable) to be a EnhancedGenerator.
      * @param gen
      */
-    enhance<T, R = any, N = undefined>(gen: AsyncGenable<T>): EnhancedAsyncGenerator<T, R, N> {
-        const gen2 = toAsyncGenerator(gen) as Partial<EnhancedAsyncGenerator<T, R, N>>;
+    enhance<T, TReturn, TNext>(gen: Genable<T, Async, TReturn, TNext>):
+        EnhancedAsyncGenerator<T, TReturn, TNext>
+    {
+        const gen2 = toAsyncGenerator(gen)as
+            unknown as Partial<EnhancedAsyncGenerator<T, TReturn, TNext>>;
         const old = Object.getPrototypeOf(gen2);
         const proto = Object.assign(Object.create(EnhancedAsyncGenerator.prototype), old);
-        proto.return = (v: any) => (gen2.returning = v, old.return.call(gen2, v));
+        proto.return = (v: any) => ((gen2 as any).returning = v, old.return.call(gen2, v));
+        proto[Symbol.asyncIterator] = () => gen2;
         Object.setPrototypeOf(gen2, proto);
-        return gen2 as EnhancedAsyncGenerator<T, R, N>;
+        return gen2 as EnhancedAsyncGenerator<T, TReturn, TNext>;
     }
 }
 
@@ -996,11 +1199,12 @@ class Async_ implements GeneratorOps<Async> {
 const Async: GeneratorOps<Async> = new Async_();
 export {Async};
 
-export abstract class EnhancedAsyncGenerator<T = unknown, TReturn = any, TNext = unknown>
+export abstract class EnhancedAsyncGenerator<T, TReturn, TNext>
     extends Enhancements<T, TReturn, TNext, Async>
-    implements AsyncGenerator<T, TReturn, TNext>, AsyncIterable<T>, AsyncIterator<T> {
-
-    abstract [Symbol.asyncIterator](): EnhancedAsyncGenerator<T>;
+    implements AsyncGenerator<T, TReturn, TNext>,
+        AsyncIterable<T>,
+        AsyncIterator<T, TReturn, TNext>
+{
 }
 
 const makeProto = (base: any) => {

@@ -10,7 +10,7 @@
  * @preferred
  */
 
-import type {Enhanced, FlatGen, Genable, GeneratorOps, GenOp, GenOpValue, GenUnion, IndexedFn, IndexedPredicate, Reducer, ReturnValue, UnwrapArray, UnwrapGen} from "./types";
+import type {Enhanced, FlatGen, Genable, GeneratorOps, GenOp, GenOpValue, GenVoid, IndexedFn, IndexedPredicate, Reducer, ReturnValue, UnwrapArray} from "./types";
 // Should be 'import type' but that makes TS insist it can't be a value here even after defining it.
 import {Sync} from './types';
 import {doCatch, isGenable, isGenerator, isIterable, isIterator, toGenerator, toIterable, toIterator} from "./functions";
@@ -30,7 +30,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * Return a generator that yields the supplied values.
      * @param values
      */
-    of<T extends any[]>(...values: T) : Enhanced<UnwrapArray<T>, Sync> {
+    of<T extends any[], TReturn, TNext>(...values: T):
+        Enhanced<UnwrapArray<T>, Sync, TReturn, TNext>
+    {
         return this.enhance(values);
     }
     /**
@@ -38,20 +40,27 @@ class Sync_ implements GeneratorOps<Sync> {
      * infinite generator (for obvious reasons); consider using [[EnhancedGenerator.slice]] or
      * [[EnhancedGenerator.limit]] to limit the size before calling this.
      */
-    asArray<T, G extends Genable<any>>(gen: G): T[] {
-        return [...toIterable(gen)];
+    asArray<T, TReturn, TNext>(gen: Genable<T, Sync, TReturn, TNext>):
+        T[]
+    {
+        return [...toIterable<T, TReturn, TNext>(gen)];
     };
 
-    limit<T>(max: number, gen: Genable<T>): Enhanced<T, Sync>;
+    limit<T, TReturn, TNext>(max: number, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn, TNext>;
     limit(max: number): GenOp<Sync>;
-    limit<T>(max: number, gen?: Genable<T>): Enhanced<T, Sync> | GenOp<Sync> {
-        let self: EnhancedGenerator<T>;
-        function *limit<X>(gen: Iterator<X>) {
-            let nr = undefined;
+
+    limit<T, TReturn, TNext>(max: number, gen?: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn, TNext>
+        | GenOp<Sync>
+    {
+        let self: EnhancedGenerator<T, TReturn, TNext>;
+        function *limit<X, XReturn, XNext>(gen: Iterator<X, XReturn, XNext>): Generator<X, XReturn, XNext> {
+            let nr: XNext;
             let limited: boolean = false;
             try {
                 for (let i = 0; i < max; i++) {
-                    const r = gen.next(nr);
+                    const r = gen.next(nr!);
                     if (r.done) {
                         return r.value;
                     }
@@ -75,10 +84,12 @@ class Sync_ implements GeneratorOps<Sync> {
         if (gen) {
             return self = this.enhance(limit(toIterator(gen)));
         }
-        return <X>(gen: Genable<X>) => this.enhance(limit(toIterator(gen)));
+        return <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+            this.enhance(limit(toIterator(gen)));
     }
 
-    forEach<T>(f: IndexedFn<T>, thisArg: any, gen: Genable<T>): void;
+    forEach<T, TReturn, TNext>(f: IndexedFn<T, void, Sync>, thisArg: any, gen: Genable<T, Sync, TReturn, TNext>):
+        GenVoid<Sync>;
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
@@ -86,7 +97,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param gen the generator.
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: IndexedFn<T>, gen: Genable<T>): void;
+    forEach<T, TReturn, TNext>(f: IndexedFn<T, void, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        GenVoid<Sync>;
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
@@ -94,50 +106,67 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param thisArg Optional value to be supplied as context `this` for function _f_.
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: IndexedFn<T>, thisArg?: any): (gen: Genable<T>) => void;
+    forEach<T>(f: IndexedFn<T, void, Sync>, thisArg?: any):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) =>
+            GenVoid<Sync>;
     /**
      * Operate on each value produced by the generator. f is called with two values, the
      * value yielded by this generator and a sequential index.
      * @param f
      * @typeParam T the type of value produced by the generator.
      */
-    forEach<T>(f: IndexedFn<T>): (gen: Genable<T>, thisArg?: any) => void;
-    forEach<T>(f: IndexedFn<T>, thisArgOrGen?: Genable<T>|any, gen?: Genable<T>) {
-        const forEach = (f: IndexedFn<T>, thisArg: any, gen: Genable<T>) => {
-            const it = toIterator(gen);
-            let idx = 0;
-            while (true) {
-                const r = it.next();
-                if (r.done) return r.value;
-                f.call(thisArg, r.value, idx++);
-            }
-        };
+    forEach<T>(f: IndexedFn<T, void, Sync>):
+        <TReturn, TNext>(gen: Genable<T, Sync, TReturn, TNext>, thisArg?: any) =>
+            GenVoid<Sync>;
+
+    forEach<T, TReturn, TNext>(
+            f: IndexedFn<T, void, Sync>,
+            thisArgOrGen?: Genable<T, Sync, TReturn, TNext>|any,
+            gen?: Genable<T, Sync, TReturn, TNext>
+        )
+    {
+        const forEach = <XReturn, XNext>(f: IndexedFn<T, void, Sync>, thisArg: any, gen: Genable<T, Sync, XReturn, XNext>):
+                GenVoid<Sync> =>
+            {
+                const it = toIterator(gen);
+                let idx = 0;
+                while (true) {
+                    const r = it.next();
+                    if (r.done) return;
+                    f.call(thisArg, r.value, idx++);
+                }
+            };
         if (gen) return forEach(f, thisArgOrGen, gen);
         if (isGenable<T>(thisArgOrGen)) return forEach(f, undefined, thisArgOrGen);
-        return (gen: Genable<T, Sync>, thisArg?: any) => forEach(f, thisArg ?? thisArgOrGen, gen);
+        return <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, thisArg?: any) =>
+            forEach<XReturn, XNext>(f, thisArg ?? thisArgOrGen, gen);
     }
 
-    map<T, V>(f: IndexedFn<T, V>): GenOpValue<Sync, T, [any?], Enhanced<V, Sync>>;
-    map<T, V>(f: IndexedFn<T, V>, thisArg?: any): GenOpValue<Sync, T, [], Enhanced<V, Sync>>;
-    map<T, V>(f: IndexedFn<T, V>, gen: Genable<T>): Enhanced<V, Sync>;
-    map<T, V>(f: IndexedFn<T, V>, thisArg: any, gen: Genable<T>): Enhanced<V, Sync>;
-    map<T, V>(f: IndexedFn<T, V>, thisArg?: any | Genable<T>, iter?: Genable<T>):
-        EnhancedGenerator<V>
-        | ((gen: Genable<T>) => EnhancedGenerator<V>)
-        | ((gen: Genable<T>, thisArg?: any) => EnhancedGenerator<V>)
+    map<T, V>(f: IndexedFn<T, V, Sync>):
+        GenOpValue<Sync, T, V>;
+    map<T, V>(f: IndexedFn<T, V, Sync>, thisArg?: any):
+        GenOpValue<Sync, T, V>;
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<V, Sync, TReturn, TNext>;
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Sync>, thisArg: any, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<V, Sync, TReturn, TNext>;
+    map<T, V, TReturn, TNext>(f: IndexedFn<T, V, Sync>, thisArg?: any | Genable<T, Sync, TReturn, TNext>, iter?: Genable<T, Sync, TReturn, TNext>):
+        EnhancedGenerator<V, TReturn, TNext>
+        | (<XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) => EnhancedGenerator<V, XReturn, XNext>)
+        | (<XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, thisArg?: any) => EnhancedGenerator<V, XReturn, XNext>)
     {
-        const map = (thisArg: any, iter: Genable<T>) => {
+        const map = <XReturn, XNext>(thisArg: any, iter: Genable<T, Sync, XReturn, XNext>) => {
             const gen = toGenerator(iter);
-            let self: EnhancedGenerator<V>;
-            function* map(): Generator<V> {
-                let nr = undefined;
+            let self: EnhancedGenerator<V, XReturn, XNext>;
+            function* map(): Generator<V, XReturn, XNext> {
+                let nr: XNext;
                 let idx = 0;
                 while (true) {
                     // noinspection LoopStatementThatDoesntLoopJS
                     while (true) {
                         try {
                             while (true) {
-                                const r = gen.next(nr);
+                                const r = gen.next(nr!);
                                 if (r.done) return r.value;
                                 const v: V = f.call(thisArg, r.value, idx++);
                                 try {
@@ -160,8 +189,9 @@ class Sync_ implements GeneratorOps<Sync> {
             return self = this.enhance(map());
         };
         if (iter) return map(thisArg, iter);
-        if (isGenable<T>(thisArg)) return map(undefined, thisArg);
-        return (gen: Genable<T>, genThisArg?: any) => map(genThisArg ?? thisArg, gen);
+        if (isGenable<T, TReturn, TNext>(thisArg)) return map(undefined, thisArg);
+        return <XReturn, XNext>(gen: Genable<T, Sync,XReturn, XNext>, genThisArg?: any) =>
+            map(genThisArg ?? thisArg, gen);
     }
 
     /**
@@ -172,7 +202,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param f
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Sync>): GenOpValue<Sync, T, [any?], Enhanced<T, Sync>>;
+    filter<T>(f: IndexedPredicate<T, Sync>):
+        GenOpValue<Sync, T, T>;
 
     /**
      * Return a function that filters a [[Genable]] and yields a new [[EnhancedGenerator]]
@@ -183,7 +214,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param thisArg Optional context to be passed as `this` to the predicate.
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Sync>, thisArg: any): GenOpValue<Sync, T, [], Enhanced<T, Sync>>;
+    filter<T>(f: IndexedPredicate<T, Sync>, thisArg: any):
+        GenOpValue<Sync, T, T>;
 
     /**
      * Return a new [[EnhancedGenerator]] that yields only the values that satisfy the predicate _f_.
@@ -193,7 +225,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param iter a [[Genable|Genable<T>]]
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Sync>, iter: Genable<T, Sync>): Enhanced<T, Sync>;
+    filter<T, TReturn, TNext>(f: IndexedPredicate<T, Sync>, iter: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn, TNext>;
     /**
      * Return a new [[EnhancedGenerator]] that yields only the values that satisfy the predicate _f_.
      *
@@ -203,7 +236,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param iter a [[Genable|Genable<T>]]
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Sync>, thisArg: any, iter: Genable<T, Sync>): Enhanced<T, Sync>;
+    filter<T, TReturn, TNext>(f: IndexedPredicate<T, Sync>, thisArg: any, iter: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn, TNext>;
 
     /**
      * Return a function that filters a [[Genable]] and yields a new [[EnhancedGenerator]]
@@ -215,14 +249,17 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param iter the [[Genable]] to filter.
      * @typeParam T the type of value.
      */
-    filter<T>(f: IndexedPredicate<T, Sync>, thisArg?: any | Genable<T, Sync>, iter?: Genable<T, Sync>):
-        Enhanced<T, Sync>
-        | GenOpValue<Sync, T, [], Enhanced<T, Sync>>
-        | GenOpValue<Sync, T, [any?], Enhanced<T, Sync>>
+    filter<T, TReturn, TNext>(
+        f: IndexedPredicate<T, Sync>,
+        thisArg?: any | Genable<T, Sync, TReturn, TNext>,
+        iter?: Genable<T, Sync, TReturn, TNext>
+    ):
+        Enhanced<T, Sync, TReturn, TNext>
+        | GenOpValue<Sync, T, T>
     {
-        const filter = (thisArg: any, iter: Genable<T, Sync>) => {
+        const filter = <XReturn, XNext>(thisArg: any, iter: Genable<T, Sync, XReturn, XNext>) => {
             const gen = toGenerator(iter);
-            let self: EnhancedGenerator<T, Sync>;
+            let self: EnhancedGenerator<T, TReturn, TNext>;
             function* filter<V>(f: IndexedPredicate<T, Sync>): Generator<T> {
                 let nr: any = undefined;
                 let idx = 0;
@@ -257,7 +294,8 @@ class Sync_ implements GeneratorOps<Sync> {
 
         if (iter) return filter(thisArg, iter);
         if (isGenable<T>(thisArg)) return filter(undefined, thisArg);
-        return (gen: Genable<T, Sync>, genThisArg?: any) => filter(genThisArg ?? thisArg, gen);
+        return <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, genThisArg?: any) =>
+            filter(genThisArg ?? thisArg, gen);
     }
 
     /**
@@ -268,7 +306,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * The return type is currently over-broad
      * @param depth
      */
-    flat<T, D extends number = 1>(depth: D): <X>(gen: Genable<X>) => Enhanced<Sync, FlatGen<X, D>>;
+    flat<D extends number>(depth: D):
+        <X, XReturn = X, XNext = X>(gen: Genable<X, Sync, XReturn, XNext>) =>
+            Enhanced<Sync, FlatGen<X, D>, XReturn, XNext>;
     /**
      * Flatten the values yielded by the generator to level _depth_. Produces a generator that yields
      * the individual values at each level in depth-first order. Any iterable (including Array) or iterator
@@ -278,7 +318,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param depth
      * @param gen
      */
-    flat<T, D extends number = 1>(depth: D, gen: Genable<T>): Enhanced<Sync, FlatGen<T, D>>;
+    flat<D extends number, T, TReturn, TNext>(depth: D, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<Sync, FlatGen<T, D>, TReturn, TNext>;
     /**
      * Flatten the values yielded by the generator to level _depth_. Produces a generator that yields
      * the individual values at each level in depth-first order. Any iterable (including Array) or iterator
@@ -288,17 +329,22 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param gen
      * @param depth default = 1
      */
-    flat<T, D extends number = 1>(gen: Genable<T>, depth?: D): Enhanced<Sync, FlatGen<T, D>>;
-    flat<T, D extends number = 1>(depth: D|Genable<T>, gen?: Genable<T> | D):
-        Enhanced<Sync, FlatGen<T, D>>
-        | (<X>(gen: Genable<X>) => Enhanced<Sync, FlatGen<X, D>>)
+    flat<D extends number, T, TReturn, TNext>(gen: Genable<T, Sync, TReturn, TNext>, depth?: D):
+        Enhanced<Sync, FlatGen<T, D>, TReturn, TNext>;
+
+    flat<D extends number, T, TReturn, TNext>(
+        depth: D|Genable<T, Sync, TReturn, TNext>,
+        gen?: Genable<T, Sync, TReturn, TNext> | D
+    ):
+        Enhanced<Sync, FlatGen<T, D>, TReturn, TNext>
+        | (<X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) => Enhanced<Sync, FlatGen<X, D>, XReturn, XNext>)
     {
-        const flat = <X>(depth: D, gen: Genable<X, Sync>) => {
-            let self: EnhancedGenerator<FlatGen<X, D>>;
+        const flat = <X, XReturn, XNext>(depth: D, gen: Genable<X, Sync, XReturn, XNext>) => {
+            let self: EnhancedGenerator<FlatGen<X, D>, XReturn, XNext>;
             const gens = new Set<Generator>();
             if (isGenerator(gen)) gens.add(gen);
 
-            function* flat<D extends number>(it: Iterator<unknown>, depth: D): Generator<FlatGen<X, D>> {
+            function* flat<D extends number>(it: Iterator<unknown, XReturn, XNext>, depth: D): Generator<FlatGen<X, D>, XReturn, XNext> {
                 let nr: any = undefined;
                 while (true) {
                     // noinspection LoopStatementThatDoesntLoopJS
@@ -312,10 +358,10 @@ class Sync_ implements GeneratorOps<Sync> {
                                     gens.add(v);
                                 }
                                 try {
-                                    if (depth > 0 && isIterator(v)) {
+                                    if (depth > 0 && isIterator<unknown, XReturn, XNext>(v)) {
                                         yield* flat(v, depth - 1);
                                     } else if (depth > 0 && isIterable(v)) {
-                                        yield* flat(toIterator(v), depth - 1)
+                                        yield* flat(toIterator<unknown, XReturn, XNext>(v), depth - 1)
                                     } else {
                                         nr = yield r.value as FlatGen<T, D>;
                                     }
@@ -349,7 +395,8 @@ class Sync_ implements GeneratorOps<Sync> {
                     throw new TypeError(`Invalid Genable: ${gen}`);
                 }
             }
-            return <X>(gen: Genable<X, Sync>) => flat(depth, gen);
+            return <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+                flat(depth, gen);
         } else if (isGenable(depth)) {
             return flat((gen ?? 1) as D, depth);
         }
@@ -366,7 +413,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param f
      * @param depth
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Sync>, depth: D): (gen: Genable<T, Sync>) => Enhanced<FlatGen<R, D>, Sync>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T>(f: IndexedFn<T, R, Sync>, depth: D):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) =>
+            Enhanced<R, Sync, XReturn, XNext>;
 
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
@@ -377,7 +426,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * The return type is currently over-broad
      * @param f
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Sync>): (gen: Genable<T, Sync>, depth?: D) => Enhanced<FlatGen<R, D>, Sync>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T>(f: IndexedFn<T, R, Sync>):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, depth?: D) =>
+            Enhanced<R, Sync, XReturn, XNext>;
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
      * Produces a generator that yields the individual values at each level in depth-first order. Any iterable
@@ -387,7 +438,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param f
      * @param gen
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Sync>, gen: Genable<T, Sync>): Enhanced<FlatGen<R, D>, Sync>;
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(f: IndexedFn<T, R, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<R, Sync, TReturn, TNext>;
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
      * Produces a generator that yields the individual values at each level in depth-first order. Any iterable
@@ -398,28 +450,42 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param depth
      * @param gen
      */
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Sync>, depth: D, gen: Genable<T, Sync>): Enhanced<FlatGen<R, D>, Sync>;
-    flatMap<T, D extends number, R = FlatGen<T, D>>(f: IndexedFn<T, R, Sync>, depthOrGen?: D | Genable<T, Sync>, gen?: Genable<T, Sync>):
-        Enhanced<FlatGen<R, D>, Sync>
-        | (<X, Y = FlatGen<T, D>>(gen: Genable<X, Sync>) => Enhanced<Y, Sync>)
-        | (<X, Y = FlatGen<T, D>>(gen: Genable<X, Sync>, depth?: D) => Enhanced<Y, Sync>)
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(f: IndexedFn<T, R, Sync>, depth: D, gen: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<R, Sync, TReturn, TNext>;
+
+    flatMap<D extends number, R extends FlatGen<T, D>, T, TReturn, TNext>(
+            f: IndexedFn<T, R, Sync>,
+            depthOrGen?: D | Genable<T, Sync, TReturn, TNext>,
+            gen?: Genable<T, Sync, TReturn, TNext>
+        ):
+            Enhanced<R, Sync, TReturn, TNext>
+            | (
+                <X, Y extends FlatGen<T, D>, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+                Enhanced<Y, Sync, XReturn, XNext>
+            )
+            | (
+                <X, Y extends FlatGen<T, D>, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>, depth?: D) =>
+                    Enhanced<Y, Sync, XReturn, XNext>
+            )
     {
-        const flatMap = <X>(depth: D, gen: Genable<X, Sync>) => {
-            let self: Enhanced<FlatGen<X, D>, Sync>;
+        const flatMap = <X, XReturn, XNext>(depth: D, gen: Genable<X, Sync, XReturn, XNext>) => {
+            let self: Enhanced<FlatGen<X, D>, Sync, XReturn, XNext>;
             let idx = 0;
 
-            function* flatMap<D extends number>(it: Iterator<unknown>, depth: D): Generator<FlatGen<X, D>, undefined, unknown | undefined> {
-                let nr: any = undefined;
+            function* flatMap<D extends number, Y, YReturn, YNext>(it: Iterator<Y, YReturn, YNext>, depth: D):
+                Generator<FlatGen<X, D>, XReturn, XNext>
+            {
+                let nr: YNext;
                 while (true) {
                     // noinspection LoopStatementThatDoesntLoopJS
                     while (true) {
                         try {
                             while (true) {
-                                const r = it.next(nr as undefined);
-                                if (r.done) return r.value;
-                                const v = f(r.value as FlatGen<T, D>, idx++);
+                                const r = it.next(nr!);
+                                if (r.done) return r.value as unknown as XReturn;
+                                const v = f(r.value as unknown as T, idx++);
                                 try {
-                                    if (isIterator(v)) {
+                                    if (isIterator<unknown, XReturn, XNext>(v)) {
                                         if (depth > 1) {
                                             yield* flatMap(v, depth - 1);
                                         } else if (depth === 1) {
@@ -429,14 +495,14 @@ class Sync_ implements GeneratorOps<Sync> {
                                         }
                                     } else if (isIterable(v)) {
                                         if (depth > 1) {
-                                            yield* flatMap(toIterator(v), depth - 1);
+                                            yield* flatMap(toIterator<unknown, XReturn, XNext>(v), depth - 1);
                                         } else if (depth === 1) {
                                             yield* toGenerator(v);
                                         } else {
                                             yield v;
                                         }
                                     } else {
-                                        nr = yield v;
+                                        nr = (yield v) as unknown as YNext;
                                     }
                                 } catch (e) {
                                     it.throw?.(e);
@@ -462,7 +528,8 @@ class Sync_ implements GeneratorOps<Sync> {
         } else if (isGenable( depthOrGen)) {
             return flatMap(1 as D, depthOrGen);
         }
-        return <X>(gen: Genable<X, Sync>, depth?: D) => flatMap(depthOrGen ?? depth ?? 1 as D, gen);
+        return <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>, depth?: D) =>
+            flatMap(depthOrGen ?? depth ?? 1 as D, gen);
     }
 
     /**
@@ -471,7 +538,10 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param start
      * @param end
      */
-    slice<T>(start: number, end: number): <X>(iter: Genable<X, Sync>) => Enhanced<X, Sync>;
+    slice<T>(start: number, end: number):
+        <X, XReturn, XNext>(iter: Genable<X, Sync, XReturn, XNext>) =>
+            Enhanced<X, Sync, XReturn | undefined, XNext>;
+
     /**
      * Return a new [[EnhancedGenerator]] that only yields the indicated values, skipping _start_ initial values
      * and continuing until the _end_.
@@ -479,49 +549,57 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param end
      * @param iter
      */
-    slice<T>(start: number, end: number, iter: Genable<T, Sync>): Enhanced<T, Sync>;
-    slice<T>(start: number, end: number, iter?: Genable<T, Sync>):
-        Enhanced<T, Sync>
-        | (<X>(gen: Genable<X, Sync>) => Enhanced<X, Sync>)
+    slice<T, TReturn, TNext>(start: number, end: number, iter: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn | undefined, TNext>;
+
+    slice<T, TReturn, TNext>(start: number, end: number, iter?: Genable<T, Sync, TReturn, TNext>):
+        Enhanced<T, Sync, TReturn | undefined, TNext>
+        | (
+            <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+                Enhanced<X, Sync, XReturn | undefined, XNext>
+        )
     {
-        const slice = <X>(iter: Genable<X, Sync>) => {
-            const it = toIterator(iter);
-            function* slice(start: number, end: number) {
-                for (let i = 0; i < start; i++) {
-                    const r = it.next();
-                    if (r.done) return r.value;
-                }
-                if (end === Number.POSITIVE_INFINITY) {
-                    yield* toIterable(it);
-                } else {
-                    let nv = undefined;
-                    while (true) {
-                        try {
-                            for (let i = start; i < end; i++) {
-                                const r = it.next(nv);
-                                if (r.done) return r.value;
-                                try {
-                                    nv = yield r.value;
-                                } catch (e) {
-                                    const re = it.throw?.(e);
-                                    if (re) {
-                                        if (re.done) return re.value;
-                                        nv = yield re.value;
+        const slice = <X, XReturn, XNext>(iter: Genable<X, Sync, XReturn, XNext>):
+                Enhanced<X, Sync, XReturn | undefined, XNext> =>
+            {
+                const it = toIterator(iter);
+                function* slice(start: number, end: number) {
+                    for (let i = 0; i < start; i++) {
+                        const r = it.next();
+                        if (r.done) return r.value;
+                    }
+                    if (end === Number.POSITIVE_INFINITY) {
+                        yield* toIterable(it);
+                    } else {
+                        let nv: XNext;
+                        while (true) {
+                            try {
+                                for (let i = start; i < end; i++) {
+                                    const r = it.next(nv!);
+                                    if (r.done) return r.value;
+                                    try {
+                                        nv = yield r.value;
+                                    } catch (e) {
+                                        const re = it.throw?.(e);
+                                        if (re) {
+                                            if (re.done) return re.value;
+                                            nv = yield re.value;
+                                        }
                                     }
                                 }
-                            }
-                        } finally {
-                            const x = it.return?.(null);
-                            // If the wrapped generator aborted the return, we will, too.
-                            if (x && !x.done) {
-                                // noinspection ContinueOrBreakFromFinallyBlockJS
-                                break;
+                            } finally {
+                                const x = it.return?.();
+                                // If the wrapped generator aborted the return, we will, too.
+                                if (x && !x.done) {
+                                    // noinspection ContinueOrBreakFromFinallyBlockJS
+                                    break;
+                                }
                             }
                         }
                     }
+                    return;
                 }
-            }
-            return this.enhance(slice(start, end));
+                return this.enhance(slice(start, end));
         };
         if (!iter) return slice;
         return slice(iter);
@@ -533,13 +611,18 @@ class Sync_ implements GeneratorOps<Sync> {
      * Ensures that any supplied generators are terminated when this is terminated.
      * @param gens zero or more additional [[Genable]] to provide values.
      */
-    concat<T extends Genable<any, Sync>[]>(...gens: T): Enhanced<GenUnion<T>, Sync> {
-        let self: Enhanced<GenUnion<T>, Sync>;
-        function* concat() {
+    concat<
+        T, TReturn, TNext,
+        A extends Array<Genable<T, Sync, TReturn, TNext>>
+    >(...gens: A):
+        Enhanced<T, Sync, TReturn | void, TNext>
+    {
+        let self: Enhanced<T, Sync, TReturn | void, TNext>;
+        function* concat(): Generator<T, TReturn | void, TNext> {
             let i = 0;
             try {
                 for (; i < gens.length; i++) {
-                    yield* toIterable(gens[i]);
+                    yield* toIterable<T,TReturn, TNext>(gens[i]);
                 }
             } finally {
                 // Terminate any remaining generators.
@@ -551,8 +634,7 @@ class Sync_ implements GeneratorOps<Sync> {
                 }
             }
         }
-
-        return self = this.enhance(concat());
+        return self = this.enhance(concat()) ;
     }
 
     /**
@@ -561,7 +643,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param f
      * @param gen
      */
-    reduce<A, T>(f: Reducer<A, T, T, Sync>, gen: Genable<T, Sync>): A;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        A;
     /**
      *
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
@@ -570,7 +653,9 @@ class Sync_ implements GeneratorOps<Sync> {
      *
      * @param f
      */
-    reduce<A, T>(f: Reducer<A, T, T, Sync>): (gen: Genable<T, Sync>) => A;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, Sync>):
+        (gen: Genable<T, Sync, TReturn, TNext>) =>
+            A;
     /**
      *
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
@@ -579,7 +664,10 @@ class Sync_ implements GeneratorOps<Sync> {
      *
      * @param f
      */
-    reduce<A, T>(f: Reducer<A, T, A, Sync>): (init: A, gen: Genable<T, Sync>) => A;
+    reduce<A, T>(f: Reducer<A, T, A, Sync>):
+        <TReturn, TNext>(init: A, gen: Genable<T, Sync, TReturn, TNext>) =>
+            A;
+
     /**
      * Reduces **gen** like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array")
      * is omitted because there is no array.
@@ -587,7 +675,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param init
      * @param gen
      */
-    reduce<A, T>(f: Reducer<A, T, A, Sync>, init: A, gen: Genable<T, Sync>): A;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, A, Sync>, init: A, gen: Genable<T, Sync, TReturn, TNext>):
+        A;
+
     /**
      * Returns a reducer function that, when applied to a `Generator` **gen**, reduces **gen** like
      * `Array.prototype.reduce`. The 3rd argument to the reducing function ("array")
@@ -597,18 +687,21 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param f
      * @param init
      */
-    reduce<A, T>(f: Reducer<A, T, A, Sync>, init: A): (gen: Genable<T, Sync>) => A;
-    reduce<A, T>(
+    reduce<A, T>(f: Reducer<A, T, A, Sync>, init: A):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) =>
+            A;
+
+    reduce<A, T, TReturn, TNext>(
         f: Reducer<A, T, A | T, Sync>,
-        initOrGen?: A | Genable<T, Sync>,
-        gen?: Genable<T, Sync>
+        initOrGen?: A | Genable<T, Sync, TReturn, TNext>,
+        gen?: Genable<T, Sync, TReturn, TNext>
     ): A
-        | ((gen: Genable<T, Sync>) => A)
+        | (<XHome, XNext>(gen: Genable<T, Sync, XHome, XNext>) => A)
         | ((f: (acc: A, v: T) => A, init: A) => A)
         | ((f: (acc: A | T, v: T) => A) => A)
     {
 
-        const reduce = (init: A | undefined, it: Iterator<T>): A => {
+        const reduce = (init: A | undefined, it: Iterator<T,unknown,unknown>): A => {
             let acc: A | T | undefined = init;
             if (acc === undefined) {
                 const r = it.next();
@@ -626,7 +719,8 @@ class Sync_ implements GeneratorOps<Sync> {
         } else if (isGenable(initOrGen)) {
             return reduce(undefined, toIterator(initOrGen));
         }
-        return (gen: Genable<T, Sync>, init?: A) => reduce(init ?? initOrGen, toIterator(gen));
+        return <XHome, XNext>(gen: Genable<T, Sync, XHome, XNext>, init?: A) =>
+            reduce(init ?? initOrGen, toIterator(gen));
     }
 
     /**
@@ -637,7 +731,10 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    some<T>(p: IndexedPredicate<T, Sync>, thisArg?: any): (gen: Genable<T, Sync>) => ReturnValue<boolean, Sync>;
+    some<T>(p: IndexedPredicate<T, Sync>, thisArg?: any):
+        <XHome, XNext>(gen: Genable<T, Sync, XHome, XNext>) =>
+            ReturnValue<boolean, Sync>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -645,7 +742,10 @@ class Sync_ implements GeneratorOps<Sync> {
      * If the generator terminates without having satisfied the predicate, `false` is returned.
      * @param p predicate to apply to each yielded value.
      */
-    some<T>(p: IndexedPredicate<T, Sync>): (gen: Genable<T, Sync>, thisArg?: any) => ReturnValue<boolean, Sync>;
+    some<T>(p: IndexedPredicate<T, Sync>):
+        <XHome, XNext>(gen: Genable<T, Sync, XHome, XNext>, thisArg?: any) =>
+            ReturnValue<boolean, Sync>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -654,7 +754,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param p predicate to apply to each yielded value.
      * @param gen the generator
      */
-    some<T>(p: IndexedPredicate<T, Sync>, gen: Genable<T, Sync>): ReturnValue<boolean, Sync>;
+    some<T, TReturn, TNext>(p: IndexedPredicate<T, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        ReturnValue<boolean, Sync>;
+
     /**
      * Returns `true` and terminates the generator if the predicate is true for any of the generator's
      * yielded values.
@@ -664,14 +766,19 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      * @param gen the generator
      */
-    some<T>(p: IndexedPredicate<T, Sync>, thisArg: any, gen: Genable<T, Sync>): ReturnValue<boolean, Sync>;
-    some<T>(
+    some<T, TReturn, TNext>(p: IndexedPredicate<T, Sync>, thisArg: any, gen: Genable<T, Sync, TReturn, TNext>):
+        ReturnValue<boolean, Sync>;
+
+    some<T, TReturn, TNext>(
         pred: IndexedPredicate<T, Sync>,
-        thisOrGen?: any | Genable<T, Sync>,
-        gen?: Genable<T>
-    ): ReturnValue<boolean, Sync> | ((gen: Genable<T, Sync>) => ReturnValue<boolean, Sync>)
+        thisOrGen?: any | Genable<T, Sync, TReturn, TNext>,
+        gen?: Genable<T, Sync, TReturn, TNext>
+    ):
+        ReturnValue<boolean, Sync>
+        | (<XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, thisArg?: any) =>
+            ReturnValue<boolean, Sync>)
     {
-        const some = (thisArg: any, it: Iterator<T>): boolean => {
+        const some = <XReturn, XNext>(thisArg: any, it: Iterator<T, XReturn, XNext>): boolean => {
             let i = 0;
             while (true) {
                 const r = it.next();
@@ -681,11 +788,12 @@ class Sync_ implements GeneratorOps<Sync> {
         };
         if (isGenable(gen)) {
             return some(thisOrGen, toIterator(gen));
-        } else if (isGenable(gen)) {
-            return (gen: Genable<T, Sync>, thisArg?: any) =>
-                some(thisArg ?? thisOrGen, toIterator(gen));
+        } else if (isGenable<T, TReturn, TNext>(thisOrGen)) {
+            return some(undefined, toIterator(thisOrGen));
+        } else {
+            return <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, thisArg?: any) =>
+                some<XReturn, XNext>(thisArg ?? thisOrGen, toIterator(gen));
         }
-        throw new Error(`Invalid argument to some: ${gen ?? thisOrGen}`);
     }
 
     /**
@@ -696,7 +804,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    every<T>(p: IndexedPredicate<T, Sync>, thisArg?: any): (gen: Genable<T, Sync>) => ReturnValue<boolean, Sync>;
+    every<T>(p: IndexedPredicate<T, Sync>, thisArg?: any):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) =>
+            ReturnValue<boolean, Sync>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -705,7 +815,9 @@ class Sync_ implements GeneratorOps<Sync> {
      * If the generator terminates without having failed the predicate, `true` is returned.
      * @param p predicate to apply to each yielded value.
      */
-    every<T>(p: IndexedPredicate<T, Sync>): (gen: Genable<T, Sync>, thisArg?: any) => ReturnValue<boolean, Sync>;
+    every<T>(p: IndexedPredicate<T, Sync>):
+        <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext >, thisArg?: any) =>
+            ReturnValue<boolean, Sync>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -715,7 +827,8 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param p predicate to apply to each yielded value.
      * @param gen the generator
      */
-    every<T>(p: IndexedPredicate<T, Sync>, gen: Genable<T, Sync>): ReturnValue<boolean, Sync>;
+    every<T, TReturn, TNext>(p: IndexedPredicate<T, Sync>, gen: Genable<T, Sync, TReturn, TNext>):
+        ReturnValue<boolean, Sync>;
 
     /**
      * Returns `false` and terminates this generator if the predicate is false for any of the generator's
@@ -726,14 +839,21 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      * @param gen the generator
      */
-    every<T>(p: IndexedPredicate<T, Sync>, thisArg: any, gen: Genable<T, Sync>): ReturnValue<boolean, Sync>;
-    every<T>(
+    every<T, TReturn, TNext>(p: IndexedPredicate<T, Sync>, thisArg: any, gen: Genable<T, Sync, TReturn, TNext>):
+        ReturnValue<boolean, Sync>;
+
+    every<T, TReturn, TNext>(
         pred: IndexedPredicate<T, Sync>,
-        genOrThis?: any | Genable<T, Sync>,
-        gen?: Genable<T, Sync>
-    ): ReturnValue<boolean, Sync> | ((gen: Genable<T, Sync>) => ReturnValue<boolean, Sync>)
+        genOrThis?: any | Genable<T, Sync, TReturn, TNext>,
+        gen?: Genable<T, Sync, TReturn, TNext>
+    ):
+        ReturnValue<boolean, Sync>
+        | (
+            <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>) =>
+                ReturnValue<boolean, Sync>
+        )
     {
-        const every = (thisArg: any, it: Iterator<T>): boolean => {
+        const every = <XReturn, XNext>(thisArg: any, it: Iterator<T, XReturn, XNext>): boolean => {
             let i = 0;
             while (true) {
                 const r = it.next();
@@ -744,7 +864,7 @@ class Sync_ implements GeneratorOps<Sync> {
         if (isGenable(gen)) {
             return every(genOrThis, toIterator(gen));
         } else if (isGenable(gen)) {
-            return (gen: Genable<T, Sync>, thisArg?: any) =>
+            return <XReturn, XNext>(gen: Genable<T, Sync, XReturn, XNext>, thisArg?: any) =>
                 every(thisArg ?? genOrThis, toIterator(gen));
         }
         throw new Error(`Invalid argument to every: ${gen ?? genOrThis}`);
@@ -757,19 +877,24 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param gen
      * @param max
      */
-    repeatLast<T>(gen: Genable<T, Sync>, max: number = Number.POSITIVE_INFINITY): Enhanced<T | undefined, Sync> {
+    repeatLast<T, TReturn, TNext>(
+        gen: Genable<T, Sync, TReturn, TNext>,
+        max: number = Number.POSITIVE_INFINITY
+    ):
+        Enhanced<T, Sync, TReturn | void, TNext>
+    {
         const it = toIterator(gen);
         let nr: any;
-        let self: EnhancedGenerator<T | undefined>;
+        let self: EnhancedGenerator<T, TReturn | void, TNext>;
 
-        function* repeatLast() {
+        function* repeatLast(): Generator<T, TReturn | void, TNext> {
             try {
-                let last = undefined
+                let last: T;
                 while (true) {
                     const r = it.next(nr)
                     if (r.done) break;
                     try {
-                        nr = yield last = r.value;
+                        nr = yield (last = r.value);
                     } catch (e) {
                         const re = it.throw?.(e);
                         if (re) {
@@ -779,7 +904,7 @@ class Sync_ implements GeneratorOps<Sync> {
                     }
                 }
                 for (let i = 0; i < max; i++) {
-                    yield last;
+                    yield last!;
                 }
             } finally {
                 it.return?.(self.returning);
@@ -795,8 +920,10 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param value the value to repeat
      * @param repetitions The number repetitions; the default is infinite.
      */
-    repeat<T>(value: T, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T, Sync> {
-        function* repeat() {
+    repeat<T, TReturn, TNext>(value: T, repetitions: number = Number.POSITIVE_INFINITY):
+        Enhanced<T, Sync, TReturn | void, TNext>
+    {
+        function* repeat(): Generator<T, TReturn | void, TNext> {
             for (let i = 0; i < repetitions; i++) {
                 yield value;
             }
@@ -813,21 +940,23 @@ class Sync_ implements GeneratorOps<Sync> {
      * @param gens
      */
 
-    zip<G extends (Genable<any, Sync>)[]>(...gens: G) {
+    zip<T, TReturn, TNext>(...gens: Array<Genable<T, Sync, TReturn, TNext>>):
+        Enhanced<Array<T>, Sync, TReturn, TNext>
+    {
         if (gens.length === 0) return this.enhance([]);
         const its = gens.map(toIterator);
         let done = false;
-        let self: Enhanced<UnwrapGen<Sync, G>, Sync>;
+        let self: Enhanced<Array<T>, Sync, TReturn, TNext>;
 
-        function* zip2(): Generator<UnwrapGen<Sync, G>> {
+        function* zip2(): Generator<Array<T>, TReturn, TNext> {
             try {
                 while (true) {
-                    let result: UnwrapGen<Sync, G> = [] as unknown as UnwrapGen<Sync, G>;
+                    let result: Array<T> = [];
                     for (const g of its) {
                         const r = g.next();
                         if (r.done) {
                             done = true;
-                            return r.value;
+                            return r.value as TReturn;
                         }
                         (result as any[]).push(r.value);
                     }
@@ -866,18 +995,29 @@ class Sync_ implements GeneratorOps<Sync> {
      * Returns a function that joins the elements produced by a [[Genable]], analogous to `Array.prototype.join`.
      * @param sep (default = ',')
      */
-    join(sep: string): <T>(gen: Genable<T, Sync>) => ReturnValue<string, Sync>;
+    join(sep: string):
+        <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+            ReturnValue<string, Sync>;
 
     /**
      * Joins the elements produced by a [[Genable]], analogous to `Array.prototype.join`.
      * @param gen
      * @param sep
      */
-    join<T>(gen: Genable<T, Sync>, sep?: string): ReturnValue<string, Sync>;
-    join<T>(genOrSeparator: Genable<T, Sync>|string, sep?: string): string | (<X>(gen: Genable<X, Sync>) => string) {
+    join<T, TReturn, TNext>(gen: Genable<T, Sync, TReturn, TNext>, sep?: string):
+        ReturnValue<string, Sync>;
+
+    join<T, TReturn, TNext>(
+        genOrSeparator: Genable<T, Sync, TReturn, TNext>|string,
+        sep?: string
+    ):
+        string
+        | (<X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) => string)
+    {
         if (typeof genOrSeparator === 'string') {
             sep = genOrSeparator;
-            return <X>(gen: Genable<X, Sync>) => this.join(gen, sep);
+            return <X, XReturn, XNext>(gen: Genable<X, Sync, XReturn, XNext>) =>
+                this.join(gen, sep);
         }
         return [...toIterable(genOrSeparator)].join(sep);
     }
@@ -892,20 +1032,25 @@ class Sync_ implements GeneratorOps<Sync> {
      * sources.
      * @param sources
      */
-    merge<E extends any, G extends (Genable<E, Sync>)[] = (Genable<E, Sync>)[]>(...sources: G): Enhanced<E, Sync> {
-        let self: Enhanced<E, Sync>;
-        let gens: (Iterator<E> | null)[] = sources.map(toIterator);
-        function* merge() {
+
+    merge<T, TReturn, TNext>(...sources: Array<Genable<T, Sync, TReturn, TNext>>):
+        Enhanced<T, Sync, TReturn, TNext>
+    {
+        let self: Enhanced<T, Sync, TReturn, TNext>;
+        let gens: Array<Iterator<T, TReturn, TNext> | null> = sources.map(toIterator);
+        function* merge<X, XReturn, XNext>(gens: Array<Iterator<X, XReturn, XNext> | null>):
+            Generator<X, XReturn, XNext>
+        {
             let done = false;
             let running = true;
-            let nv = undefined;
+            let nv: XNext;
             try {
                 while (running) {
                     running = false;
                     for (let i = 0; i < gens.length; i++) {
                         const g = gens[i];
                         if (g) {
-                            const r = g.next(nv);
+                            const r = g.next(nv!);
                             if (r.done) {
                                 gens[i] = null;
                             } else {
@@ -927,17 +1072,16 @@ class Sync_ implements GeneratorOps<Sync> {
             }
             return self.returning;
         }
-        return self = this.enhance(merge());
+        return self = this.enhance(merge(gens));
     }
 
     /**
      * Returns a function that sorts the supplied sources and returns a sorted array.
      * @param cmp a comparison function
      */
-    sort<E>(cmp?: ((a: E, b: E) => number)) {
-        return (...sources:Genable<E>[]) => {
-            const result: E[] = [];
-            sources.forEach(s => this.enhance(s).forEach(e => result.push(e)));
+    sort<T>(cmp?: ((a: T, b: T) => number)) {
+        return <TReturn, TNext>(...sources: Array<Genable<T, Sync, TReturn, TNext>>) => {
+            const result: T[] = this.merge(...sources).asArray();
             return result.sort(cmp);
         }
     }
@@ -946,13 +1090,16 @@ class Sync_ implements GeneratorOps<Sync> {
      * Enhance an existing generator (or iterator or iterable) to be a EnhancedGenerator.
      * @param gen
      */
-    enhance<T, R = any, N = undefined>(gen: Genable<T, Sync>): EnhancedGenerator<T, R, N> {
-        const gen2 = toGenerator(gen) as Partial<EnhancedGenerator<T, R, N>>;
+    enhance<T, TReturn, TNext>(gen: Genable<T, Sync, TReturn, TNext>):
+        EnhancedGenerator<T, TReturn, TNext>
+    {
+        const gen2 = toGenerator(gen) as Partial<EnhancedGenerator<T, TReturn, TNext>>;
         const old = Object.getPrototypeOf(gen2);
         const proto = Object.create(EnhancedGenerator.prototype);
-        proto.return = (v: any) => (gen2.returning = v, old.return.call(gen2, v));
+        proto.return = (v: TReturn) => (gen2.returning = v, old.return.call(gen2, v));
+        proto[Symbol.iterator] = () => gen2;
         Object.setPrototypeOf(gen2, EnhancedGenerator.prototype);
-        return gen2 as EnhancedGenerator<T, R, N>;
+        return gen2 as EnhancedGenerator<T, TReturn, TNext>;
     }
 }
 
@@ -977,11 +1124,11 @@ class Sync_ implements GeneratorOps<Sync> {
  * @typeParam TReturn the type of values returned in the iteration result when the generator terminates
  * @typeParam TNext the type of value which can be passed to `.next(val)`.
  */
-export abstract class EnhancedGenerator<T = unknown, TReturn = any, TNext = unknown>
+export abstract class EnhancedGenerator<T, TReturn, TNext>
     extends Enhancements<T, TReturn, TNext, Sync>
-    implements Generator<T, TReturn, TNext>, Iterable<T>, Iterator<T> {
-
-    abstract [Symbol.iterator](): EnhancedGenerator<T, TReturn, TNext>;
+    implements Generator<T, TReturn, TNext>, Iterable<T>,
+        Iterator<T, TReturn, TNext>
+{
     [Symbol.toStringTag]: 'EnhancedGenerator';
 }
 

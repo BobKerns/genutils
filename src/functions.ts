@@ -12,7 +12,7 @@
  */
 
 
-import type {Async, Sync, Genable} from "./types";
+import type {Async, Sync, Genable, FullIterable, FullIterableIterator} from "./types";
 
 /**
  * Predicate/Type Guard for any function.
@@ -27,18 +27,20 @@ export const isFunction = <A extends Function>(f: (A | any)): f is A => {
  * supports the `Iterator` or `Iterable` protocols. (Generators support both).
  * @param g
  */
-export const isGenable = <T>(g: Iterator<T>|Iterable<T>|Generator<T>|any): g is Genable<T> =>
-    g && (isIterator(g) || isIterable(g));
+export const isGenable = <T, TReturn = T, TNext = T>(g: Iterator<T, TReturn, TNext>|Iterable<T>|Generator<T, TReturn, TNext>|any):
+    g is Genable<T, Sync, TReturn, TNext> =>
+        g && (isIterator(g) || isIterable(g));
 
 
-export const isAsyncGenable = <T>(g: AsyncIterator<T>|AsyncIterable<T>|AsyncGenerator<T>|any): g is Genable<T, Async> =>
-    g && (isAsyncIterator(g) || isAsyncIterable(g) || isIterable(g));
+export const isAsyncGenable = <T, TReturn, TNext>(g: AsyncIterator<T, TReturn, TNext>|AsyncIterable<T>|AsyncGenerator<T,TReturn,TNext>|any):
+    g is Genable<T, Async, TReturn, TNext> =>
+        g && (isAsyncIterator<T, TReturn, TNext>(g) || isAsyncIterable<T, TReturn, TNext>(g) || isIterable<T, TReturn, TNext>(g));
 
 /**
  * Predicate/type guard to determine if an object is (or looks like, structurally) a Generator.
  * @param g
  */
-export const isGenerator = <T>(g: Genable<T>|any): g is Generator<T> =>
+export const isGenerator = <T, TReturn, TNext>(g: Genable<T, Sync, TReturn, TNext>|any): g is Generator<T, TReturn, TNext> =>
     g &&
     isFunction(g.next)
     && isFunction(g.return)
@@ -49,7 +51,7 @@ export const isGenerator = <T>(g: Genable<T>|any): g is Generator<T> =>
  * Predicate/type guard to determine if an object is (or looks like, structurally) a AsyncGenerator.
  * @param g
  */
-export const isAsyncGenerator = <T>(g: Genable<T, Async>|any): g is AsyncGenerator<T> =>
+export const isAsyncGenerator = <T, TReturn, TNext>(g: Genable<T, Async, TReturn, TNext>|any): g is AsyncGenerator<T> =>
     g &&
     isFunction(g.next)
     && isFunction(g.return)
@@ -65,7 +67,7 @@ export const isAsyncGenerator = <T>(g: Genable<T, Async>|any): g is AsyncGenerat
  * you need an enhanced generator.
  * @param i
  */
-export function toGenerator<T>(i: Genable<T>): Generator<T> {
+export function toGenerator<T, TReturn = T, TNext = T>(i: Genable<T, Sync, TReturn, TNext>): Generator<T, TReturn, TNext> {
     if (isGenerator(i)) return i;
     if (isIterator(i)) {
         const it = i;
@@ -80,7 +82,7 @@ export function toGenerator<T>(i: Genable<T>): Generator<T> {
 
         return wrap();
     } else if (isIterable(i)) {
-        return toGenerator(i[Symbol.iterator]());
+        return toGenerator(i[Symbol.iterator]() as Iterator<T, TReturn, TNext>);
     } else {
         throw new Error(`Not iterable: ${i}`);
     }
@@ -96,7 +98,9 @@ export function toGenerator<T>(i: Genable<T>): Generator<T> {
  * you need an enhanced generator.
  * @param i
  */
-export function toAsyncGenerator<T>(i: Genable<T, Async>|Genable<T, Sync>): AsyncGenerator<T> {
+export function toAsyncGenerator<T, TReturn, TNext>(i: Genable<T, Async, TReturn, TNext>|Genable<T, Sync, TReturn, TNext>):
+    AsyncGenerator<T, TReturn, TNext>
+{
     if (isAsyncGenerator(i)) return i;
     if (isAsyncIterator(i)) {
         const it = i;
@@ -109,9 +113,9 @@ export function toAsyncGenerator<T>(i: Genable<T, Async>|Genable<T, Sync>): Asyn
         }
         return wrap();
     } else if (isAsyncIterable(i)) {
-        return toAsyncGenerator(i[Symbol.asyncIterator]());
+        return toAsyncGenerator(i[Symbol.asyncIterator]()) as AsyncGenerator<T, TReturn, TNext>;
     } else if (isIterable(i)) {
-        return toAsyncGenerator(i[Symbol.iterator]());
+        return toAsyncGenerator(i[Symbol.iterator]() as Iterator<T, TReturn, TNext>);
     } else {
         throw new Error(`Not iterable: ${i}`);
     }
@@ -122,11 +126,11 @@ export function toAsyncGenerator<T>(i: Genable<T, Async>|Genable<T, Sync>): Asyn
  * while if it is an `Iterable`, `[Symbol.iterator]`() is invoked.
  * @param i
  */
-export function toIterator<T>(i: Genable<T>): Iterator<T> {
+export function toIterator<T, TReturn, TNext>(i: Genable<T, Sync, TReturn, TNext>): Iterator<T, TReturn, TNext> {
     if (isGenerator(i)) return i;
     if (isIterator(i)) return i;
     if (isIterable(i)) {
-        return i[Symbol.iterator]();
+        return i[Symbol.iterator]() as Iterator<T, TReturn, TNext>;
     } else {
         throw new Error(`Not iterable: ${i}`);
     }
@@ -138,10 +142,10 @@ export function toIterator<T>(i: Genable<T>): Iterator<T> {
  * while if it is an `Iterable`, `[Symbol.iterator]`() is invoked.
  * @param i
  */
-export function toAsyncIterator<T>(i: Genable<T, Async>): AsyncIterator<T> {
+export function toAsyncIterator<T, TReturn, TNext = T>(i: Genable<T, Async, TReturn, TNext>): AsyncIterator<T, TReturn, TNext> {
     if (isAsyncGenerator(i)) return i;
     if (isAsyncIterable(i)) {
-        return i[Symbol.asyncIterator]();
+        return i[Symbol.asyncIterator]() as AsyncIterator<T, TReturn, TNext>;
     } else if (isIterable(i)) {
         return asyncAdaptor(toIterator(i));
     } else {
@@ -149,7 +153,9 @@ export function toAsyncIterator<T>(i: Genable<T, Async>): AsyncIterator<T> {
     }
 }
 
-const asyncAdaptor = <T>(i: Iterator<T>): AsyncGenerator<T> => {
+const asyncAdaptor = <T, TReturn, TNext>(i: Iterator<T, TReturn, TNext>):
+    AsyncGenerator<T, TReturn, TNext> =>
+{
     const it = i as unknown as AsyncIterator<T>;
     let self: AsyncGenerator<T> & {returning?: any};
     async function* asyncAdaptor(): AsyncGenerator<T> {
@@ -184,11 +190,13 @@ const asyncAdaptor = <T>(i: Iterator<T>): AsyncGenerator<T> => {
  * method that returns the supplied iterator.
  * @param i
  */
-export function toIterable<T>(i: Genable<T>): Iterable<T> {
-    if (isIterable(i)) return i;
+export function toIterable<T, TReturn = T, TNext = T>(i: Genable<T,Sync,TReturn,TNext>):
+    FullIterable<T, Sync, TReturn, TNext>
+{
+    if (isIterable(i)) return i as FullIterable<T, Sync, TReturn, TNext>;
     return {
         [Symbol.iterator]: () => i
-    };
+    } as FullIterable<T, Sync, TReturn, TNext>;
 }
 
 
@@ -198,17 +206,21 @@ export function toIterable<T>(i: Genable<T>): Iterable<T> {
  * method that returns the supplied iterator.
  * @param i
  */
-export function toAsyncIterable<T>(i: Genable<T, Async>): AsyncIterable<T> {
-    if (isAsyncIterable(i)) return i;
-    if (isIterable(i)) {
-        return toAsyncIterable_adaptor(i);
+export function toAsyncIterable<T, TReturn, TNext>(i: Genable<T, Async, TReturn, TNext>):
+    FullIterable<T, Async, TReturn, TNext>
+{
+    if (isAsyncIterable<T, TReturn, TNext>(i)) return i;
+    if (isIterable<T, TReturn, TNext>(i)) {
+        return toAsyncIterable_adaptor<T, TReturn, TNext>(i) as
+            FullIterable<T, Async, TReturn, TNext>;
     }
     return {
-        [Symbol.asyncIterator]: () => i as AsyncIterator<T>
-    };
+        [Symbol.asyncIterator]: () => i
+    } as FullIterable<T, Async, TReturn, TNext>;
 }
-
-async function* toAsyncIterable_adaptor<T>(iterable: Iterable<T>): AsyncGenerator<T> {
+async function* toAsyncIterable_adaptor<T, TReturn, TNext>(iterable: Iterable<T>):
+    AsyncGenerator<T, TReturn, TNext>
+{
     const it = iterable[Symbol.iterator]();
     let nr: any = undefined;
     while (true) {
@@ -223,24 +235,24 @@ async function* toAsyncIterable_adaptor<T>(iterable: Iterable<T>): AsyncGenerato
  * Similar to [[toGenerator]], but does not require the presence of `Generator.return` or `Generator.throw` methods.
  * @param i
  */
-export function toIterableIterator<T>(i: Genable<T, Sync>): IterableIterator<T> {
-    if (isIterable(i) && isIterator(i)) return i;
+export function toIterableIterator<T, TReturn = T, TNext = T>(i: Genable<T, Sync, TReturn, TNext>): FullIterableIterator<T, Sync, TReturn, TNext> {
+    if (isIterable(i) && isIterator(i)) return i as FullIterableIterator<T, Sync, TReturn, TNext>;
     if (isIterable(i)) {
         // Invoke [Symbol.iterator]() just once, on first use.
         let _it: Iterator<T>|undefined = undefined;
         const it = () => _it ?? (_it = i[Symbol.iterator]());
-        const iit: IterableIterator<T> = {
+        const iit: FullIterableIterator<T, Sync, TReturn, TNext> = {
             [Symbol.iterator]: () => iit,
-            next: () => it().next(),
+            next: (val?: TNext) => it().next(val as undefined),
             return: it().return && ((val) => it().return!(val)),
             throw: it().throw && ((val) => it().throw!(val))
         };
         return iit;
     }
     if (isIterator(i)) {
-        const iit: IterableIterator<T> = {
+        const iit: FullIterableIterator<T, Sync, TReturn, TNext> = {
             [Symbol.iterator]: () => iit,
-            next: (val: any) => i.next(val),
+            next: (val?: TNext) => i.next(val!),
             return: i.return && ((val) => i.return!(val)),
             throw: i.throw && ((val) => i.throw!(val))
         }
@@ -255,12 +267,16 @@ export function toIterableIterator<T>(i: Genable<T, Sync>): IterableIterator<T> 
  * `AsyncGenerator.throw` methods.
  * @param i
  */
-export function toAsyncIterableIterator<T>(i: Genable<T, Async>): AsyncIterableIterator<T> {
-    if (isAsyncIterable(i) && isAsyncIterator(i)) return i;
-    if (isAsyncIterable(i)) {
+export function toAsyncIterableIterator<T, TReturn, TNext>(i: Genable<T, Async, TReturn, TNext>):
+    FullIterableIterator<T, Async, TReturn, TNext>
+{
+    if (isAsyncIterable<T, TReturn, TNext>(i) && isAsyncIterator<T, TReturn, TNext>(i)) {
+        return i as unknown as FullIterableIterator<T, Async, TReturn, TNext>;
+    }
+    if (isAsyncIterable<T, TReturn, TNext>(i)) {
         // Invoke [Symbol.iterator]() just once, on first use.
-        let _it: AsyncIterator<T>|undefined = undefined;
-        const it = () => _it ?? (_it = i[Symbol.asyncIterator]());
+        let _it: AsyncIterator<T, TReturn, TNext>|undefined = undefined;
+        const it = () => _it ?? (_it = i[Symbol.asyncIterator]() as AsyncIterator<T, TReturn, TNext>);
         const iit: AsyncIterableIterator<T> = {
             [Symbol.asyncIterator]: () => iit,
             next: () => it().next(),
@@ -269,7 +285,7 @@ export function toAsyncIterableIterator<T>(i: Genable<T, Async>): AsyncIterableI
         };
         return iit;
     }
-    if (isIterable(i)) {
+    if (isIterable<T, TReturn, TNext>(i)) {
         return toAsyncIterable_adaptor(i);
     }
     if (isAsyncIterator(i)) {
@@ -291,8 +307,9 @@ export function toAsyncIterableIterator<T>(i: Genable<T, Async>): AsyncIterableI
  * runtime errors if you don't anticipate the distinction.
  * @param i
  */
-export const isIterator = <K>(i: Iterable<K> | any): i is Iterator<K> =>
-    i && typeof i.next === 'function';
+export const isIterator = <K, KReturn = K, KNext = K>(i: Iterable<K> | FullIterable<K, Sync, KReturn, KNext> | any):
+    i is Iterator<K, KReturn, KNext> =>
+        i && typeof i.next === 'function';
 
 /**
  * Predicate/type guard, returns `true` if the argument satisfies the `AsyncIterator` protocol (has a `next()` method).
@@ -301,15 +318,16 @@ export const isIterator = <K>(i: Iterable<K> | any): i is Iterator<K> =>
  * runtime errors if you don't anticipate the distinction.
  * @param i
  */
-export const isAsyncIterator = <K>(i: AsyncIterable<K> | any): i is AsyncIterator<K> =>
-    i && typeof i.next === 'function';
+export const isAsyncIterator = <K, KReturn = K, KNext = K>(i: AsyncIterable<K> | AsyncIterator<K, KReturn, KNext>| any):
+    i is AsyncIterator<K, KReturn, KNext> =>
+        i && typeof i.next === 'function';
 
 /**
  * Predicate/type guard, returns `true` if the argument satisfies the `Iterable` protocol (has a `[Symbol.iterator]`
  * method).
  * @param i
  */
-export const isIterable = <K>(i: Iterable<K> | any): i is Iterable<K> =>
+export const isIterable = <K, KReturn = K, KNext = K>(i: Iterable<K> | FullIterable<K, Sync, KReturn, KNext> | any): i is FullIterable<K, Sync, KReturn, KNext>  =>
     i && typeof i[Symbol.iterator] === 'function';
 
 /**
@@ -317,24 +335,27 @@ export const isIterable = <K>(i: Iterable<K> | any): i is Iterable<K> =>
  * method).
  * @param i
  */
-export const isAsyncIterable = <K>(i: AsyncIterable<K> | any): i is AsyncIterable<K> =>
-    i && typeof i[Symbol.asyncIterator] === 'function';
+export const isAsyncIterable = <K, KReturn = K, KNext = K>(i: AsyncIterable<K> | FullIterable<K, Async, KReturn, KNext> | any):
+    i is FullIterable<K, Async, KReturn, KNext> =>
+        i && typeof i[Symbol.asyncIterator] === 'function';
 
 /**
  * Predicate/type guard, returns `true` if the argument satisfies the `Iterable` protocol (has a `[Symbol.iterator]`
  * method) and the `Iterator` protocol (a next() method).
  * @param i
  */
-export const isIterableIterator = <K>(i: Iterable<K>|Iterator<K>|any): i is IterableIterator<K> =>
-    isIterator(i) && isIterable(i);
+export const isIterableIterator = <K, KReturn = K, KNext = K>(i: Iterable<K>|Iterator<K, KReturn, KNext>|any):
+    i is FullIterableIterator<K, Sync, KReturn, KNext> =>
+        isIterator(i) && isIterable(i);
 
 /**
  * Predicate/type guard, returns `true` if the argument satisfies the `AsyncIterable` protocol (has a `[Symbol.asyncIterator]`
  * method) and the `AsyncIterator` protocol (a next() method).
  * @param i
  */
-export const isAsyncIterableIterator = <K>(i: Iterable<K>|Iterator<K>|any): i is IterableIterator<K> =>
-    isAsyncIterator(i) && isAsyncIterable(i);
+export const isAsyncIterableIterator = <K, KReturn = K, KNext = K>(i: Iterable<K>|Iterator<K, KReturn, KNext>|any):
+    i is FullIterableIterator<K, Async, KReturn, KNext> =>
+        isAsyncIterator(i) && isAsyncIterable(i);
 
 /**
  * Wrap a function in a catch block.

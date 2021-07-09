@@ -20,7 +20,7 @@
  * @preferred
  */
 
-import {Enhanced, FlatGen, Genable, GeneratorOps, GenIteratorResult, GenUnion, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapGen} from "./types";
+import {Async, Enhanced, FlatGen, Genable, GeneratorOps, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapArray} from "./types";
 
 /**
  * Enhancements for generators
@@ -32,19 +32,44 @@ export type {Enhanced} from './types';
  * The trampoline methods that link enhanced generators to [[Sync]] or [[Async]]
  * methods.
  */
-export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
-
+export abstract class Enhancements<
+        T, TReturn, TNext, S extends SyncType
+        >
+{
     abstract _impl: GeneratorOps<S>;
 
     // Set on a call to return().
     returning?: any;
 
-    abstract next(): GenIteratorResult<T, TReturn, S>;
+    abstract next(...arg: [] | [arg: TNext]):
+        S extends Async
+            ? Promise<IteratorResult<T, TReturn>>
+            : IteratorResult<T, TReturn>;
 
-    abstract return(value: any): GenIteratorResult<T, TReturn, S>;
+    abstract return(value: TReturn):
+        S extends Async
+            ? Promise<IteratorReturnResult<TReturn>>
+            : IteratorReturnResult<TReturn>;
 
-    abstract throw(e: any): GenIteratorResult<T, TReturn, S>;
+    abstract throw(e: any):
+        S extends Async
+            ? Promise<IteratorReturnResult<TReturn>>
+            : IteratorReturnResult<TReturn>;;
 
+    abstract [Symbol.iterator]:
+        S extends Async
+            ? undefined
+            : () => this & IterableIterator<T>;
+
+    abstract [Symbol.asyncIterator]:
+        S extends Async
+            ? () => this & AsyncIterableIterator<T>
+            : undefined;
+
+    [Symbol.toStringTag]:
+        S extends Async
+            ? 'EnhancedAsyncGenerator'
+            : 'EnhancedGenerator';
 
     /**
      * Return all of the values from this generator as an array. You do not want to call this on an
@@ -52,7 +77,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * [[EnhancedGenerator.limit]] to limit the size before calling this.
      */
     asArray(): ReturnValue<T[], S> {
-        return this._impl.asArray(this);
+        return this._impl.asArray<T, TReturn, TNext>(this);
     }
 
     /**
@@ -60,7 +85,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * exceeded. See [[EnhancedGenerator.slice]] if you want to truncate.
      * @param max
      */
-    limit(max: number): Enhanced<T, S> {
+    limit(max: number): Enhanced<T, S, TReturn, TNext> {
         return this._impl.limit(max, this);
     }
 
@@ -71,7 +96,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param thisArg Value to be supplied as context `this` for function _f_.
      */
     forEach(f: IndexedFn<T, void, S>, thisArg?: any): void {
-        this._impl.forEach(f, thisArg, this);
+        this._impl.forEach<T, TReturn, TNext>(f, thisArg, this);
     }
 
     /**
@@ -81,7 +106,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param f
      * @param thisArg Optional value to be supplied as context `this` for function _f_.
      */
-    map<V>(f: IndexedFn<T, V, S>, thisArg?: any): Enhanced<V, S> {
+    map<V>(f: IndexedFn<T, V, S>, thisArg?: any): Enhanced<V, S, TReturn, TNext> {
         return this._impl.map(f, thisArg, this);
     }
 
@@ -93,7 +118,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param f
      * @param thisArg Optional context to be passed as `this` to the predicate.
      */
-    filter(f: IndexedPredicate<T, S>, thisArg?: any): Enhanced<T, S> {
+    filter(f: IndexedPredicate<T, S>, thisArg?: any): Enhanced<T, S, TReturn, TNext> {
         return this._impl.filter(f, thisArg, this);
     }
 
@@ -105,8 +130,8 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * The return type is currently over-broad
      * @param depth (default = 1)
      */
-    flat<D extends number = 1>(depth: D = 1 as D): Enhanced<S, FlatGen<T, D>> {
-        return this._impl.flat<T, D>(depth, this);
+    flat<D extends number>(depth: D = 1 as D): Enhanced<S, FlatGen<T, D>, TReturn, TNext> {
+        return this._impl.flat<D, T, TReturn, TNext>(depth, this);
     }
 
     /**
@@ -118,8 +143,10 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param f
      * @param depth
      */
-    flatMap<D extends number = 1>(f: IndexedFn<T, FlatGen<T, D>, S>, depth: D = 1 as D): Enhanced<S, FlatGen<T, D>> {
-        return this._impl.flatMap<T, D>(f, depth, this);
+    flatMap<D extends number = 1>(f: IndexedFn<T, FlatGen<T, D>, S>, depth: D = 1 as D):
+        Enhanced<S, FlatGen<T, D>, TReturn, TNext>
+    {
+        return this._impl.flatMap<D, T, FlatGen<T, D>, TReturn, TNext>(f, depth, this);
     }
 
     /**
@@ -128,7 +155,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param start
      * @param end
      */
-    slice(start: number = 0, end: number = Number.POSITIVE_INFINITY): Enhanced<T, S> {
+    slice(start: number = 0, end: number = Number.POSITIVE_INFINITY): Enhanced<T, S, TReturn | undefined, TNext> {
         return this._impl.slice(start, end, this);
     }
 
@@ -139,8 +166,11 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param gens zero or more additional [[Genable]] to provide values.
      */
 
-    concat<X extends Genable<any, S>[]>(...gens: X): Enhanced<GenUnion<X>|T, S> {
-        return this._impl.concat(this, ...gens);
+    concat<T, TReturn, TNext>(...gens: Array<Genable<T, S, TReturn, TNext>>):
+        Enhanced<T, S, TReturn | void, TNext>
+    {
+        const self = this as UnwrapArray<typeof gens>;
+        return this._impl.concat(self, ...gens);
     }
 
 
@@ -149,16 +179,16 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * because there is no array.
      * @param f
      */
-    reduce<A>(f: Reducer<A, T, T, S>): ReturnValue<A, S>;
+    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, S>): ReturnValue<A, S>;
     /**
      * Like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array") is omitted
      * because there is no array.
      * @param f
      * @param init
      */
-    reduce<A>(f: Reducer<A, T, A, S>, init: A): ReturnValue<A, S>;
-    reduce<A>(f: Reducer<A, T, S>, init?: A): ReturnValue<A, S> {
-        return this._impl.reduce(f, init as A, this);
+    reduce<A, T, TReturn = T, TNext = T>(f: Reducer<A, T, A, S>, init: A): ReturnValue<A, S>;
+    reduce<A>(f: Reducer<A, T, A, S>, init?: A): ReturnValue<A, S> {
+        return this._impl.reduce<A, T, TReturn, TNext>(f, init as A, this);
     }
 
     /**
@@ -172,7 +202,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
     some<T>(p: IndexedPredicate<T, S>, thisArg?: any): ReturnValue<boolean, S> {
         // Why is type typecast to Genable needed here?
         // Yet the seemingly identical case of 'every' below does not?
-        return this._impl.some(p, thisArg, this as Genable<T, S>);
+        return this._impl.some(p, thisArg, this as Genable<T, S, TReturn, TNext>);
     }
 
     /**
@@ -183,8 +213,8 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    every(p: IndexedPredicate<T>, thisArg?: any): ReturnValue<boolean, S> {
-        return this._impl.every(p, thisArg, this);
+    every(p: IndexedPredicate<T, S>, thisArg?: any): ReturnValue<boolean, S> {
+        return this._impl.every(p, thisArg, this as Genable<T, S, TReturn, TNext>);
     }
 
 
@@ -194,7 +224,7 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      *
      * @param max
      */
-    repeatLast(max: number = Number.POSITIVE_INFINITY): Enhanced<T | undefined, S> {
+    repeatLast(max: number = Number.POSITIVE_INFINITY): Enhanced<T, S, TReturn | void, TNext> {
         return this._impl.repeatLast(this, max);
     }
 
@@ -206,8 +236,14 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param value the value to repeat
      * @param repetitions The number repetitions; the default is infinite.
      */
-    repeat<N>(value: N, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T | N, S> {
-        return this.concat(this._impl.repeat(value, repetitions));
+
+    repeat<N>(value: N, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T | N, S, void, TNext> {
+        const tail = this._impl.repeat<T|N, void, TNext>(value, repetitions);
+        const result = this._impl.concat(
+            this as Genable<T|N, S, undefined, TNext>,
+            tail as Genable<T|N, S, undefined, TNext>
+        );
+        return result as Enhanced<T | N, S, undefined, TNext>;
     }
 
     /**
@@ -218,8 +254,12 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * [[EnhancedGenerator.repeatLast]].
      * @param gens
      */
-    zip<G extends Genable<any, S>[]>(...gens: G): Enhanced<T | UnwrapGen<S, G>, S> {
-        return this._impl.zip(this, ...gens) as Enhanced<T | UnwrapGen<S, G>, S>;
+
+    zip<G extends (Genable<T, S, TReturn, TNext>)[], T, TReturn, TNext>(...gens: G):
+        Enhanced<Array<T>, S, TReturn, TNext>
+    {
+        return this._impl.zip(this as Genable<T, S, TReturn, TNext>, ...gens) as
+            Enhanced<Array<T>, S, TReturn, TNext>;
     }
 
     /**
@@ -237,6 +277,6 @@ export abstract class Enhancements<T, TReturn, TNext, S extends SyncType> {
      * @param cmp a comparison function
      */
     sort(cmp?: (a: T, b: T) => number): ReturnValue<T[], S> {
-        return this._impl.sort(cmp)(this);
+        return this._impl.sort(cmp)(this as Genable<T, S, TReturn, TNext>);
     }
 }
