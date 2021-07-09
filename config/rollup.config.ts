@@ -14,7 +14,6 @@ import {terser} from 'rollup-plugin-terser';
 import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
-import externalGlobals from "rollup-plugin-external-globals";
 import {join, dirname, basename, extname} from 'path';
 
 /**
@@ -106,10 +105,13 @@ const dbg: any = {name: 'dbg'};
  * @param resolved
  */
 const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =>
-    !/denque/i.test(id) && (resolved
-        ? /node_modules/.test(id)
-        : !/^\./.test(id));
-
+    {
+        const check = () => !/denque/.test(id) && (resolved
+            ? /node_modules/.test(id)
+            : !/^\./.test(id));
+        // process.stderr.write(`checkExternal(${id}, ${from}, ${resolved}) => ${check()}\n`);
+        return check();
+    }
 const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     input: src,
     output: outputs(pkg)(src, name),
@@ -117,26 +119,21 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     plugins: [
         resolve({
             // Check for these in package.json
-            mainFields: mainFields(pkg, ['module', 'main', 'browser'])
+            mainFields: mainFields(pkg, ['module', 'main', 'browser']),
         }),
         typescript({
-             tsconfig: 'src/tsconfig.json',
-             include: "*.ts",
-             verbosity: 1,
-             cacheRoot: "./build/rts2-cache",
-             // false = Put the declaration files into the regular output in lib/
-             useTsconfigDeclarationDir: false,
+            tsconfig: 'src/tsconfig.json',
+            include: "*.ts",
+            verbosity: 1,
+            cacheRoot: "./build/rts2-cache",
+            // false = Put the declaration files into the regular output in lib/
+            useTsconfigDeclarationDir: false,
             tsconfigOverride: {
                 "tsBuildInfoFile": `../build/tsbuild-info-${basename(src, ".d.ts")}`,
             }
          }),
         commonjs({
             extensions: [".js", ".ts"]
-        }),
-        externalGlobals({
-            // 'gl-matrix': "glMatrix",
-            //'katex': 'katex',
-            'ramda': 'ramda'
         }),
         ...(!dev && !DISABLE_TERSER) ? [
             terser({
