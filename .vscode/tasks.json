@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "type": "npm",
+            "script": "build",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "group": "build",
+            "label": "npm: build",
+            "detail": "rollup -c"
+        },
+        {
+            "type": "npm",
+            "script": "test",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "group": "test",
+            "label": "npm: test",
+            "detail": "Run unit tests"
+        }
+    ]
+}
