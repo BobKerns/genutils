@@ -1,6 +1,11 @@
+/*
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
+ *
+ * Github: https://github.com/BobKerns/genutils
+ */
 /**
  * Utilities for implementing or using generators.
- * @module
+ * @module util
  */
 
 /**
