@@ -33,3 +33,4 @@ export {
     QueueUniqueSpec, KeyFn,
     queue1, queueSticky, queueOldest, queueNewest, queueUnique, queueUpdateShallow
 } from './events';
+export {Future} from './future';

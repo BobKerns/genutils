@@ -156,5 +156,6 @@ export default [
     options('./src/async.ts', 'async'),
     options('./src/sync.ts', 'sync'),
     options('./src/generators.ts', 'generators'),
-    options('./src/events.ts', 'events')
+    options('./src/events.ts', 'events'),
+    options('./src/future.ts', 'future')
     ];
