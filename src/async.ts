@@ -1,8 +1,8 @@
-/**
- * @module genutils
- * Copyright 2020 by Bob Kerns. Licensed under MIT license
+/*
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
+ *
+ * Github: https://github.com/BobKerns/genutils
  */
-
 /**
  * This entry point loads asynchronous extended generators
  * @packageDocumentation

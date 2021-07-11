@@ -1,11 +1,11 @@
-/**
- * @module genutils
- * Copyright 2020 by Bob Kerns. Licensed under MIT license
+/*
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
+ *
+ * Github: https://github.com/BobKerns/genutils
  */
-
 /**
  * This provides the trampoline methods that are shared between synchronous and
- * asynchronous enhanced generators. Methods dispatch to {!link Sync} or {@link Async}
+ * asynchronous enhanced generators. Methods dispatch to {@link Sync} or {@link Async}
  * as appropriate.
  *
  * This becomes part of the prototype chain of enhanced generator instances. It does

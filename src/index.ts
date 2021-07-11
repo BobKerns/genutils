@@ -1,15 +1,13 @@
 /*
- * @module genutils
- * Copyright 2020 by Bob Kerns. Licensed under MIT license.
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
  *
  * Github: https://github.com/BobKerns/genutils
  */
-
 /**
  * Load the full system with a single import.
  * @packageDocumentation
  * @preferred
- * @module Index
+ * @module genutils
  */
 
 

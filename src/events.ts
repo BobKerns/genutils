@@ -1,10 +1,13 @@
-/**
- * @module genutils
- * Copyright 2020 by Bob Kerns. Licensed under MIT license
+/*
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
+ *
+ * Github: https://github.com/BobKerns/genutils
  */
-
 /**
  * Turn events/imperative calls into values returned by an async generator.
+ * @module events
+ * @packageDocumentation
+ * @preferred
  */
 
 import Denque from 'denque';

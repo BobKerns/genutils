@@ -1,14 +1,10 @@
-/**
- * @module genutils
- * Copyright 2020 by Bob Kerns. Licensed under MIT license
+/*
+ * Copyright 2021 by Bob Kerns. Licensed under MIT license.
+ *
+ * Github: https://github.com/BobKerns/genutils
  */
-
 /**
  * Type declarations for generators and related.
- *
- * @packageDocumentation
- * @module types
- * @preferred
  */
 
 import {Enhancements} from "./enhancements";

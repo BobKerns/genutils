@@ -28,6 +28,8 @@ type guard functions.
 of numerical values.
 * The [[events]]<!-- @IGNORE PREVIOUS: link --> module provides the {@link eventToGenerator}
 and associated {@link QueueFactory} functions.
+* The [[sync]]<!-- @IGNORE PREVIOUS: link --> module provides the synchronouse enhanced generators.
+* The [[async]]<!-- @IGNORE PREVIOUS: link --> module provides the asynchronouse enhanced generators.
 * The [[future]]<!-- @IGNORE PREVIOUS: link --> module provides {@link Future Futures}.
 
 To import these modules, append the path '/lib/{*esm*,*cjs*,*umd*}/_module_', where
