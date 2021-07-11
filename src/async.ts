@@ -1117,13 +1117,14 @@ class Async_ implements GeneratorOps<Async> {
         let done: (r: IteratorReturnResult<TReturn>) => void;
         const donePromise = new Promise<IteratorReturnResult<TReturn>>(r => (done = r));
         let activeCount = sources.length;
-        let active: Array<Promise<IteratorResult<T, TReturn> | null>>;
-        const dead = new Promise<IteratorResult<T, TReturn>>(() => null); // Never completes
+        let active: Array<Promise<() => (IteratorResult<T, TReturn> | null)> | Promise<IteratorReturnResult<TReturn>>>;
+        const dead = new Promise<() => (IteratorResult<T, TReturn> | null)>(() => null); // Never completes
         let gens: Array<AsyncIterator<T, TReturn, TNext>> = [];
         const wrap = async (g: Genable<T, Async, TReturn, TNext>, k: number) => {
             const ag = toAsyncIterator(g);
             gens[k] = ag;
-            const handle = async (val: IteratorResult<T, TReturn>): Promise<IteratorResult<T, TReturn> | null> => {
+            const handle = async (val: IteratorResult<T, TReturn>): Promise<() => (IteratorResult<T, TReturn> | null)> =>
+                () => {
                     if (val.done) {
                         active[k] = dead;
                         // Unless this is the last active generator, we return null to indicate
@@ -1132,10 +1133,11 @@ class Async_ implements GeneratorOps<Async> {
                             ? null
                             : (done(val), val);
                     } else {
-                        active[k] = ag.next().then(handle);
+                        const v = ag.next().then(handle);
+                        active[k] = v;
                         return val;
                     }
-            };
+                };
             return (await ag.next().then(handle));
         };
         active = [...sources.map(wrap), donePromise];
@@ -1143,14 +1145,19 @@ class Async_ implements GeneratorOps<Async> {
             try {
                 let nv: TNext;
                 while (activeCount) {
-                    const race: Promise<IteratorResult<T, TReturn> | null>[] = [];
+                    const race: Array<Promise<() => (IteratorResult<T, TReturn> | null)> | Promise<IteratorReturnResult<TReturn>>> = [];
                     active.forEach(a => race.push(a))
                     const result = await (await Promise.race(race));
-                    if (result) {
-                        if (result.done) {
-                            return result.value;
+                    if (typeof result === 'function') {
+                        let r = result();
+                        if (r) {
+                            if (r.done) {
+                                return r.value;
+                            }
+                            nv = (yield r.value);
                         }
-                        nv = (yield result.value);
+                    } else if (result && result.done) {
+                        return result.value;
                     }
                 }
             } finally {
