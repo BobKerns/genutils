@@ -106,11 +106,12 @@ const dbg: any = {name: 'dbg'};
  */
 const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =>
     {
-        const check = () => !/denque/.test(id) && (resolved
+        const external = !/denque/.test(id) && (resolved
             ? /node_modules/.test(id)
-            : !/^\./.test(id));
-        // process.stderr.write(`checkExternal(${id}, ${from}, ${resolved}) => ${check()}\n`);
-        return check();
+            : !/^\.|\/src\//.test(id));
+        process.stderr.write(`External ${id} ${from} ${resolved} => ${external}
+`);
+        return external;
     }
 const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     input: src,
@@ -123,7 +124,7 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
         }),
         typescript({
             tsconfig: 'src/tsconfig.json',
-            include: "*.ts",
+            include: "**/*.ts",
             verbosity: 1,
             cacheRoot: "./build/rts2-cache",
             // false = Put the declaration files into the regular output in lib/

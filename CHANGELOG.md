@@ -1,11 +1,29 @@
 # Changelog
 
-# Version 0.1.39
+## Version 0.1.41
+
+__date: 2021-07-24__
+
+* Update dependencies
+
+## Version 0.1.40
+
+__date: 2021-07-11__
+
+* Update Dependencies
+* Fix some issues with Async iterators
+* Add Futures
+* Add missing export of delay() from main package.
+* Various documentation presentation fixes.
+
+## Version 0.1.39
+
 __date: 2020-08-30__
 
 * Update to Typescript 4.0.2
 
-# Version 0.1.38
+## Version 0.1.38
+
 __date: 2020-08-30__
 
 * Add merge and sort operations
@@ -13,12 +31,14 @@ __date: 2020-08-30__
 * Update dev dependencies.
 * Reenable Terser
 
-# Version 0.1.37
+## Version 0.1.37
+
 __date: 2020-07-15__
 
 * Document how to include sub-modules.
 
 ## Version 0.1.36
+
 __date: 2020-07-15__
 
 * Split up entry points so you can include subsets.
@@ -26,6 +46,7 @@ __date: 2020-07-15__
 * Update mermaid and ts-jest (dev dependencies)
 
 ## Version 0.1.35
+
 __date: 2020-07-13__
 
 * Initial Release as separate package.
