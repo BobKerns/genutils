@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.43
+
+__date: 2021-07-29__
+
+* Fix an error on return of several generators in certain cases.
+
 ## Version 0.1.42
 
 __date: 2021-07-28__

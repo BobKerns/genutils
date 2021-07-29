@@ -76,7 +76,7 @@ class Sync_ implements GeneratorOps<Sync> {
                 throw err;
             } finally {
                 if (!limited) {
-                    gen.return?.(self.returning);
+                    gen.return?.(self?.returning);
                     // Even if the supplied generator refuses to terminate, we terminate.
                 }
             }
@@ -176,7 +176,7 @@ class Sync_ implements GeneratorOps<Sync> {
                                 }
                             }
                         } finally {
-                            const x = gen.return(self.returning);
+                            const x = gen.return(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (!x.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -279,7 +279,7 @@ class Sync_ implements GeneratorOps<Sync> {
                                 }
                             }
                         } finally {
-                            const x = gen.return?.(self.returning);
+                            const x = gen.return?.(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (!x?.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -370,7 +370,7 @@ class Sync_ implements GeneratorOps<Sync> {
                                 }
                             }
                         } finally {
-                            const x = it.return?.(self.returning);
+                            const x = it.return?.(self?.returning);
                             if (isGenerator(it)) gens.delete(it);
                             // If the wrapped generator aborted the return, we will, too.
                             if (x && !x.done) {
@@ -378,7 +378,7 @@ class Sync_ implements GeneratorOps<Sync> {
                                 break;
                             }
                             for (const g of gens) {
-                                g.return(self.returning);
+                                g.return(self?.returning);
                             }
                         }
                     }
@@ -509,7 +509,7 @@ class Sync_ implements GeneratorOps<Sync> {
                                 }
                             }
                         } finally {
-                            const x = it.return?.(self.returning);
+                            const x = it.return?.(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (x && !x.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -629,7 +629,7 @@ class Sync_ implements GeneratorOps<Sync> {
                 for (; i < gens.length; i++) {
                     const g = gens[i];
                     if (isGenerator(g)) {
-                        g.return(self.returning);
+                        g.return(self?.returning);
                     }
                 }
             }
@@ -907,7 +907,7 @@ class Sync_ implements GeneratorOps<Sync> {
                     yield last!;
                 }
             } finally {
-                it.return?.(self.returning);
+                it.return?.(self?.returning);
             }
         }
 
@@ -979,7 +979,7 @@ class Sync_ implements GeneratorOps<Sync> {
                     for (const g of gens) {
                         try {
                             // Weird need for a typecast here.
-                            (g as any).return?.(self.returning);
+                            (g as any).return?.(self?.returning);
                         } catch {
                             // Ignore
                         }
@@ -1067,10 +1067,10 @@ class Sync_ implements GeneratorOps<Sync> {
                 done = true;
             } finally {
                 if (!done) {
-                    gens.forEach(doCatch(g => g?.return?.(self.returning)));
+                    gens.forEach(doCatch(g => g?.return?.(self?.returning)));
                 }
             }
-            return self.returning;
+            return self?.returning;
         }
         return self = this.enhance(merge(gens));
     }

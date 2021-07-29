@@ -86,7 +86,7 @@ class Async_ implements GeneratorOps<Async> {
                 throw err;
             } finally {
                 if (!limited) {
-                    await gen.return?.(self.returning);
+                    await gen.return?.(self?.returning);
                     // Even if the supplied generator refuses to terminate, we terminate.
                 }
             }
@@ -212,7 +212,7 @@ class Async_ implements GeneratorOps<Async> {
                                 }
                             }
                         } finally {
-                            const x = await gen.return(self.returning);
+                            const x = await gen.return(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (!x.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -316,7 +316,7 @@ class Async_ implements GeneratorOps<Async> {
                                 }
                             }
                         } finally {
-                            const x = await gen.return?.(self.returning);
+                            const x = await gen.return?.(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (!x?.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -409,7 +409,7 @@ class Async_ implements GeneratorOps<Async> {
                                 }
                             }
                         } finally {
-                            const x = await it.return?.(self.returning);
+                            const x = await it.return?.(self?.returning);
                             if (isAsyncGenerator(it)) gens.delete(it);
                             // If the wrapped generator aborted the return, we will, too.
                             if (x && !x.done) {
@@ -417,7 +417,7 @@ class Async_ implements GeneratorOps<Async> {
                                 break;
                             }
                             for (const g of gens) {
-                                await g.return(self.returning);
+                                await g.return(self?.returning);
                             }
                         }
                     }
@@ -559,7 +559,7 @@ class Async_ implements GeneratorOps<Async> {
                                 }
                             }
                         } finally {
-                            const x = await it.return?.(self.returning);
+                            const x = await it.return?.(self?.returning);
                             // If the wrapped generator aborted the return, we will, too.
                             if (x && !x.done) {
                                 // noinspection ContinueOrBreakFromFinallyBlockJS
@@ -680,7 +680,7 @@ class Async_ implements GeneratorOps<Async> {
                 for (; i < gens.length; i++) {
                     const g = gens[i];
                     if (isAsyncGenerator(g)) {
-                        await g.return(self.returning);
+                        await g.return(self?.returning);
                     }
                 }
             }
@@ -978,7 +978,7 @@ class Async_ implements GeneratorOps<Async> {
                     yield await last!;
                 }
             } finally {
-                await it.return?.(self.returning);
+                await it.return?.(self?.returning);
             }
             return;
         }
@@ -1052,7 +1052,7 @@ class Async_ implements GeneratorOps<Async> {
                     for (const g of gens) {
                         try {
                             // Weird need for a typecast here.
-                            await (g as any).return?.(self.returning);
+                            await (g as any).return?.(self?.returning);
                         } catch {
                             // Ignore
                         }
@@ -1163,7 +1163,7 @@ class Async_ implements GeneratorOps<Async> {
             } finally {
                 if (activeCount) {
                     for (let i = 0; i < sources.length; i++) {
-                        (active[i] === null ? null : gens[i])?.return?.(self.returning);
+                        (active[i] === null ? null : gens[i])?.return?.(self?.returning);
                     }
                 }
             }
