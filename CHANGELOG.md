@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.42
+
+__date: 2021-07-28__
+
+* Fix NPM Scripts.
+
 ## Version 0.1.41
 
 __date: 2021-07-24__
@@ -50,4 +56,3 @@ __date: 2020-07-15__
 __date: 2020-07-13__
 
 * Initial Release as separate package.
-

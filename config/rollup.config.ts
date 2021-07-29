@@ -15,6 +15,9 @@ import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
 import {join, dirname, basename, extname} from 'path';
+import serve from 'rollup-plugin-serve';
+
+const SERVE_PORT = Number.parseInt(process.env.SERVE_PORT ?? '5555');
 
 /**
  * The visualizer plugin fails to set the plugin name. We wrap it to remedy that.
@@ -31,6 +34,8 @@ const visualizer = (opts?: Partial<VisualizerOptions>) => {
 const mode = process.env.NODE_ENV;
 // noinspection JSUnusedLocalSymbols
 const dev = mode === 'development';
+const serve_mode = process.env.SERVE && dev;
+const serve_doc = process.env.SERVE_DOC && serve_mode;
 
 /**
  * Avoid non-support of ?. optional chaining.
@@ -113,6 +118,9 @@ const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =
 `);
         return external;
     }
+
+let once = 0;
+
 const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     input: src,
     output: outputs(pkg)(src, name),
@@ -144,7 +152,16 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
         visualizer({
             filename: "build/build-stats.html",
             title: "Build Stats"
-        })
+        }),
+        ...serve_mode && once++ === 0 ? [
+            serve({
+                open: !!serve_doc,
+                verbose: true,
+                port: SERVE_PORT,
+                contentBase: '',
+                openPage: '/build/docs/api/index.html'
+            })
+        ] : []
     ]
 });
 
