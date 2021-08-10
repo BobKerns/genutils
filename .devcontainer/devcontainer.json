@@ -27,8 +27,7 @@
 		"eamodio.gitlens",
 		"goessner.mdmath",
 		"hbenl.vscode-test-explorer",
-		"fooxly.workspace",
-		"tomsaunders-code.workspace-explorer"
+		"fooxly.workspace"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
