@@ -1,6 +1,6 @@
 {
   "name": "genutils",
-  "version": "0.1.43",
+  "version": "0.1.44",
   "description": "Generator utilities that bring array-like operations to sync and async generators.",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",

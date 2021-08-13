@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.1.44
+
+__date: 2021-08-13__
+
+* Add mixins for iterable classes.  This allows them to be treated more like `Array`, directly using methods such as
+  `.map()` and `.filter()`.
+
 ## Version 0.1.43
 
 __date: 2021-07-29__
