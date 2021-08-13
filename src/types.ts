@@ -10,6 +10,7 @@
 import {Enhancements} from "./enhancements";
 import type {EnhancedGenerator} from "./sync";
 import type {EnhancedAsyncGenerator} from "./async";
+import { IEnhancements } from "./ienhancement";
 
 /**
  * Like `Iterable<T>` except allows specifying `TReturn` and `TNext`.
@@ -843,3 +844,8 @@ export type GenVoid<S extends SyncType> = {
 
 export type UnwrapArray<T> = T extends Array<infer E> ? E : never;
 
+
+export type Constructor<T extends {}> = new (...args: any[]) => T;
+export type ConstructorType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : never;
+export type SyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<Iterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'sync'>;
+export type AsyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<AsyncIterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'async'>;
