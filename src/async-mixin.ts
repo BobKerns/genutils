@@ -30,6 +30,7 @@ import { AsyncEnhancedConstructor, Constructor, Enhanced, Genable, IndexedFn, In
  * }
  *
  * const MyEnhancedAsyncIterable = AsyncMixin(MyAsyncIterable);
+ * type MyEnhancedAsyncIterable = ConstructorType<typeof MyEnhancedAsyncIterable>;
  * const foo = new MyEnhancedAsyncIterable();
  * await foo.map(i => i * 2).toArray(); => [2, 4, 6]
  * awaot foo.map(i => i + 2).toArray(); => [3, 4, 5]

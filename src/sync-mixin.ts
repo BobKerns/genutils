@@ -30,6 +30,7 @@ import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, R
  * }
  *
  * const MyEnhancedSyncIterable = SyncMixin(MySyncIterable);
+ * type MyEnhancedSyncIterable = ConstructorType<typeof MyEnhancedSyncIterable>;
  * const foo = new MyEnhancedSyncIterable();
  * foo.map(i => i * 2).toArray(); => [2, 4, 6]
  * foo.map(i => i + 2).toArray(); => [3, 4, 5]
