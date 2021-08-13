@@ -4,6 +4,12 @@
 
 __date: 2021-08-13__
 
+* Export new types.
+
+## Version 0.1.45
+
+__date: 2021-08-13__
+
 * Small documentation fix for enhanced iterables.
 
 ## Version 0.1.44

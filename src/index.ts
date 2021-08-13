@@ -22,8 +22,9 @@ export {range} from './range';
 export {
     Sync, Async, SyncType
 } from './generators';
-export {
-    Genable, GenUnion, FlatGen, GenType, Reducer
+export type {
+    Genable, GenUnion, FlatGen, GenType, Reducer,
+    Constructor, ConstructorType, SyncEnhancedConstructor, AsyncEnhancedConstructor
 } from './types';
 
 export {
