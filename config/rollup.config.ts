@@ -14,7 +14,7 @@ import {terser} from 'rollup-plugin-terser';
 import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
-import {join, dirname, basename, extname} from 'path';
+import {join, dirname, basename, extname, relative} from 'path';
 import serve from 'rollup-plugin-serve';
 
 const SERVE_PORT = Number.parseInt(process.env.SERVE_PORT ?? '5555');
@@ -54,6 +54,10 @@ interface Package {
 }
 const pkg: Package  = require('../package.json');
 
+
+const globals: {[k: string]: string} = {
+};
+
 /**
  * Compute the list of outputs from [[package.json]]'s fields
  * @param p the [[package.json]] declaration
@@ -68,7 +72,7 @@ export const outputs = (p: Package) => (s: string, n: string) => {
                 name: n,
                 format: 'umd',
                 sourcemap: true,
-                globals: {}
+                globals
             },
             {
                 format: 'cjs',
@@ -102,6 +106,8 @@ const dbg: any = {name: 'dbg'};
         return null;}
 );
 
+const globalsChecked: {[k:string]: string | false} = {};
+
 /**
  * Check for modules that should be considered external and not bundled directly.
  * By default, we consider those from node_modules to be external,
@@ -111,12 +117,19 @@ const dbg: any = {name: 'dbg'};
  */
 const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =>
     {
-        const external = !/denque/.test(id) && (resolved
-            ? /node_modules/.test(id)
-            : !/^\.|\/src\//.test(id));
-        process.stderr.write(`External ${id} ${from} ${resolved} => ${external}
-`);
-        return external;
+        const isExternal = !/denque|src\/.*[.]ts$/.test(id) && (resolved
+            ? /\/node_modules\//.test(id)
+            : !/^\./.test(id));
+        const ext = globals[id] ?? '(missing)';
+        if (globalsChecked[id] === undefined) {
+            if (isExternal) {
+                process.stderr.write(`External: ${id} => as ${ext}\n`);
+            } else {
+                process.stderr.write(`Embedded: ${relative(process.cwd(), id)}\n`);
+            }
+        }
+        globalsChecked[id] = ext;
+        return isExternal;
     }
 
 let once = 0;
