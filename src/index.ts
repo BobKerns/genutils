@@ -37,3 +37,6 @@ export {delay} from './util';
 export type {IEnhancements} from './ienhancement';
 export * from './sync-mixin';
 export * from './async-mixin';
+
+export { EnhancedGenerator } from './sync';
+export { EnhancedAsyncGenerator } from './async';
