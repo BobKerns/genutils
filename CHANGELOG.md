@@ -1,12 +1,38 @@
 # Changelog
 
+## Release 1.0.0
+
+__date: 2021-08-15__
+
+### New Features
+
+* The enhanced generator types are now exported as `Sync.Generator` and `Async.Generator`.
+* The literal types `'sync'` and `'async'` are available as `Sync.type` and `Async.type'.
+* `Sync.wrap` and `Async.wrap` take a function returning an iterator and return an iterable object that
+   invokes that function, along with the enhanced methods like `map()` and `filter()`, allowing them to be
+   treated in a manner similar to an array.
+
+### Incompatible Changes
+
+* [typescript] If you import directly from the `'sync'` or `'async'` modules, the `Sync` or `Async` exported from there
+   is no longer the literal type '`sync'` or `'async'`, but rather the `Sync` or `Async.type` or `Async.type`
+   instead.
+
+### Other Changes
+
+* Make `Sync` and `Async` exports be namespaces.
+* Export `EnhancedGenerator` and `EnhnancedAsyncGenerator` as `Sync.Generator` and `Async.Generator`
+* Export the mixins as `Sync.Mixin` and `Async.Mixin`
+* Add `Sync.wrap` and `Async.wrap`
+* Prune and enhance the documentation.
+
 ## Version 0.1.45
 
 __date: 2021-08-13__
 
 * Export new types.
 
-## Version 0.1.45
+## Version 0.1.46
 
 __date: 2021-08-13__
 

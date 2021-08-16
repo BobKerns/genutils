@@ -11,7 +11,7 @@
  * @preferred
  */
 
-import {EnhancedGenerator, Sync} from "./sync";
+import { Sync } from "./sync";
 
 /**
  * Produce numbers from __start__ to __end__ incremented by __step__.
@@ -22,8 +22,8 @@ import {EnhancedGenerator, Sync} from "./sync";
  * @param end   (default = `Number.MAX_SAFE_INTEGER`)
  * @param step  (default = 1)
  */
-export const range = (start = 0, end = Number.MAX_SAFE_INTEGER, step = 1): EnhancedGenerator<number, void, void> => {
-    function* range2(start = 0, end = Number.MAX_SAFE_INTEGER, step = 1) {
+export const range = (start = 0, end = Number.MAX_SAFE_INTEGER, step = 1): Sync.Generator<number, void, void> => {
+    function* range(start = 0, end = Number.MAX_SAFE_INTEGER, step = 1) {
         let x = start;
         if (step > 0) {
             while (x < end) {
@@ -39,5 +39,5 @@ export const range = (start = 0, end = Number.MAX_SAFE_INTEGER, step = 1): Enhan
             throw new Error("Step must not be zero.");
         }
     }
-    return Sync.enhance(range2(start, end, step));
+    return Sync.enhance(range(start, end, step));
 }

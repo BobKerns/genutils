@@ -17,7 +17,6 @@
 
 import {Sync, Async, SyncType} from "../generators";
 import {Enhanced} from "../enhancements";
-import {EnhancedGenerator} from '../sync';
 import {range} from '../range';
 
 /**
@@ -36,8 +35,8 @@ type TestGen<T, S extends SyncType> =  Enhanced<T, S, void, void> & {
     did_throw?: Error;
 };
 
-function gen(max: number): TestGen<number, Sync> {
-    let result: TestGen<number, Sync>;
+function gen(max: number): TestGen<number, Sync.type> {
+    let result: TestGen<number, Sync.type>;
     function* gen(max: number) {
         try {
             for (let i = 0; i < max; i++) {
@@ -54,7 +53,7 @@ function gen(max: number): TestGen<number, Sync> {
             }
         }
     }
-    result = gen(max) as TestGen<number, Sync>;
+    result = gen(max) as TestGen<number, Sync.type>;
     return Sync.enhance(result);
 }
 
@@ -64,7 +63,7 @@ const cmp = (a: number, b: number) => a < b
         ? 0
         : 1;
 
-const testThrow = (f: (g: TestGen<number, Sync>) => Generator<any>, value: any = 0) => {
+const testThrow = (f: (g: TestGen<number, Sync.type>) => Generator<any>, value: any = 0) => {
     const tg = gen(3);
     const g = f(tg);
     expect(g.next()).toEqual({done: false, value});
@@ -74,7 +73,7 @@ const testThrow = (f: (g: TestGen<number, Sync>) => Generator<any>, value: any =
     expect(tg.did_return).toBeUndefined();
 };
 
-const testReturn = (f: (g: TestGen<number, Sync>) => Generator<any>, value: any = 0) => {
+const testReturn = (f: (g: TestGen<number, Sync.type>) => Generator<any>, value: any = 0) => {
     const tg = gen(3);
     const g = f(tg);
     expect(g.next()).toEqual({done: false, value});
@@ -84,8 +83,8 @@ const testReturn = (f: (g: TestGen<number, Sync>) => Generator<any>, value: any 
     expect(tg.did_throw).toBeUndefined();
 };
 
-function genAsync(max: number): TestGen<number, Async> {
-    let result: TestGen<number, Async>;
+function genAsync(max: number): TestGen<number, Async.type> {
+    let result: TestGen<number, Async.type>;
     async function* gen(max: number) {
         try {
             for (let i = 0; i < max; i++) {
@@ -102,11 +101,11 @@ function genAsync(max: number): TestGen<number, Async> {
             }
         }
     }
-    result = gen(max) as TestGen<number, Async>;
+    result = gen(max) as TestGen<number, Async.type>;
     return Async.enhance(result);
 }
 
-const testThrowAsync = async (f: (g: TestGen<number, Async>) => AsyncGenerator<any>, value: any = 0) => {
+const testThrowAsync = async (f: (g: TestGen<number, Async.type>) => AsyncGenerator<any>, value: any = 0) => {
     const tg = genAsync(3);
     const g = f(tg);
     expect(await g.next()).toEqual({done: false, value});
@@ -120,7 +119,7 @@ const testThrowAsync = async (f: (g: TestGen<number, Async>) => AsyncGenerator<a
     expect(tg.did_return).toBeUndefined();
 };
 
-const testReturnAsync = async (f: (g: TestGen<number, Async>) => AsyncGenerator<any>, value: any = 0) => {
+const testReturnAsync = async (f: (g: TestGen<number, Async.type>) => AsyncGenerator<any>, value: any = 0) => {
     const tg = genAsync(3);
     const g = f(tg);
     expect(await g.next()).toEqual({done: false, value});
@@ -147,7 +146,7 @@ describe('Enhanced Generators', () => {
 
         test('of union', () => {
             // Verifies that differing types work and infer a suitable union.
-            const v: EnhancedGenerator<number | string, void, void> = Sync.of(3, 7, 'foo');
+            const v: Sync.Generator<number | string, void, void> = Sync.of(3, 7, 'foo');
             const a: Array<number | string> = v.asArray();
             expect(a).toEqual([3, 7, 'foo']);
         });

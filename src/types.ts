@@ -8,8 +8,8 @@
  */
 
 import {Enhancements} from "./enhancements";
-import type {EnhancedGenerator} from "./sync";
-import type {EnhancedAsyncGenerator} from "./async";
+import type {EnhancedGenerator} from "./sync-impl";
+import type {EnhancedAsyncGenerator} from "./async-impl";
 import { IEnhancements } from "./ienhancement";
 
 /**
@@ -44,15 +44,18 @@ export type FullIterableIterator<T, S extends SyncType, TReturn, TNext> = {
 
 /**
  * Selector type to select the types for synchronous generators.
+ * @deprecated Use {@link Sync.type}
  */
 export type Sync = 'sync';
 /**
  * Selector type to select the types for asynchronous generators.
+ * @deprecated Use {@link Async.type}
  */
 export type Async = 'async';
 
 /**
  * Selector type to select the types for synchronous or asynchronous generators.
+ * Reference the members as {@link Sync.type} or {@link Async.type}
  */
 export type SyncType = Sync | Async;
 
@@ -845,7 +848,19 @@ export type GenVoid<S extends SyncType> = {
 export type UnwrapArray<T> = T extends Array<infer E> ? E : never;
 
 
+/**
+ * @internal
+ */
 export type Constructor<T extends {}> = new (...args: any[]) => T;
+/**
+ * @internal
+ */
 export type ConstructorType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : never;
+/**
+ * Type produced by {@link Sync.Mixin}.
+ */
 export type SyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<Iterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'sync'>;
+/**
+ * Type produced by {@link Async.Mixin}.
+ */
 export type AsyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<AsyncIterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'async'>;

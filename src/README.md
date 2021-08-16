@@ -7,18 +7,19 @@ Generators can be enhanced with new methods, or functional programming can be us
 operators on generators.
 
 The functional interface is available via the [[Sync]]<!-- @IGNORE PREVIOUS: link --> and
-[[Async]]<!-- @IGNORE PREVIOUS: link --> factories. Each implements the
+[[Async]]<!-- @IGNORE PREVIOUS: link --> namespaces. Each provides the functions defined in the
 [[GeneratorOps]]<!-- @IGNORE PREVIOUS: link --> interface.
 
 The functions and methods that take generators also take iterators and iterables, under a common
 [[Genable]]<!-- @IGNORE PREVIOUS: link --> type.
 
 To convert a [[Genable]]<!-- @IGNORE PREVIOUS: link --> to an
-[[Enhanced]]<!-- @IGNORE PREVIOUS: link -->, use the
-[[GeneratorOps.enhance]]<!-- @IGNORE PREVIOUS: link -->
-method on [[Sync]]<!-- @IGNORE PREVIOUS: link --> or [[Async]]<!-- @IGNORE PREVIOUS: link -->.
+[[Enhanced]]<!-- @IGNORE PREVIOUS: link -->, use
+[[Sync.enhance]]<!-- @IGNORE PREVIOUS: link --> or
+[[Async.enhance]]<!-- @IGNORE PREVIOUS: link -->.
 
 ## Submodules
+
 The package is split into submodules which can be loaded separately.
 
 * The [[generators]]<!-- @IGNORE PREVIOUS: link --> module provides the enhanced generators.
@@ -28,12 +29,12 @@ type guard functions.
 of numerical values.
 * The [[events]]<!-- @IGNORE PREVIOUS: link --> module provides the {@link eventToGenerator}
 and associated {@link QueueFactory} functions.
-* The [[sync]]<!-- @IGNORE PREVIOUS: link --> module provides the synchronouse enhanced generators.
-* The [[async]]<!-- @IGNORE PREVIOUS: link --> module provides the asynchronouse enhanced generators.
-* The [[future]]<!-- @IGNORE PREVIOUS: link --> module provides {@link Future Futures}.
+* The [[Sync]]<!-- @IGNORE PREVIOUS: link --> module provides the synchronouse enhanced generators.
+* The [[Async]]<!-- @IGNORE PREVIOUS: link --> module provides the asynchronouse enhanced generators.
+* The [[Future]]<!-- @IGNORE PREVIOUS: link --> module provides {@link Future Futures}.
 
-To import these modules, append the path '/lib/{*esm*,*cjs*,*umd*}/_module_', where
+To import these modules, append the path '/lib/{*esm*,*cjs*,*umd*}/_module_', where:
+
 * `esm` for ECMAscript modules
 * `cjs` for Node.js when not using modules
 * `umd` for browsers when not using modules.
-

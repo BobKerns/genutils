@@ -5,7 +5,7 @@
  */
 /**
  * This provides the trampoline methods that are shared between synchronous and
- * asynchronous enhanced generators. Methods dispatch to {@link Sync} or {@link Async}
+ * asynchronous enhanced generators. Methods dispatch to {@link Sync} or {@link async}
  * as appropriate.
  *
  * This becomes part of the prototype chain of enhanced generator instances. It does
@@ -20,7 +20,9 @@
  * @preferred
  */
 
-import {Async, Enhanced, FlatGen, Genable, GeneratorOps, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapArray} from "./types";
+import {Enhanced, FlatGen, Genable, GeneratorOps, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapArray} from "./types";
+
+type async = 'async';
 
 /**
  * Enhancements for generators
@@ -36,45 +38,69 @@ export abstract class Enhancements<
         T, TReturn, TNext, S extends SyncType
         >
 {
+    /**
+     * @internal
+     */
     abstract _impl: GeneratorOps<S>;
 
+    /**
+     * @internal
+     */
     // Set on a call to return().
     returning?: any;
 
+    /**
+     * @internal
+     */
     abstract next(...arg: [] | [arg: TNext]):
-        S extends Async
+        S extends async
             ? Promise<IteratorResult<T, TReturn>>
             : IteratorResult<T, TReturn>;
 
+    /**
+     * @internal
+     */
     abstract return(value: TReturn):
-        S extends Async
+        S extends async
             ? Promise<IteratorReturnResult<TReturn>>
             : IteratorReturnResult<TReturn>;
 
+    /**
+     * @internal
+     */
     abstract throw(e: any):
-        S extends Async
+        S extends async
             ? Promise<IteratorReturnResult<TReturn>>
             : IteratorReturnResult<TReturn>;;
 
+    /**
+     * @internal
+     */
     abstract [Symbol.iterator]:
-        S extends Async
+        S extends async
             ? undefined
             : () => this & IterableIterator<T>;
 
+    /**
+     * @internal
+     */
     abstract [Symbol.asyncIterator]:
-        S extends Async
+        S extends async
             ? () => this & AsyncIterableIterator<T>
             : undefined;
 
+    /**
+     * @internal
+     */
     [Symbol.toStringTag]:
-        S extends Async
+        S extends async
             ? 'EnhancedAsyncGenerator'
             : 'EnhancedGenerator';
 
     /**
      * Return all of the values from this generator as an array. You do not want to call this on an
-     * infinite generator (for obvious reasons); consider using [[EnhancedGenerator.slice]] or
-     * [[EnhancedGenerator.limit]] to limit the size before calling this.
+     * infinite generator (for obvious reasons); consider using [[Enhancements.slice|Generator.slice]] or
+     * [[Enhancements.limit|Generator.limit]] to limit the size before calling this.
      */
     asArray(): ReturnValue<T[], S> {
         return this._impl.asArray<T, TReturn, TNext>(this);
@@ -112,7 +138,7 @@ export abstract class Enhancements<
 
 
     /**
-     * Return a new [[EnhancedGenerator]] that yields only the values that satisfy the predicate _f_.
+     * Return a new enhanced [[Enhancements|Generator]] that yields only the values that satisfy the predicate _f_.
      *
      * f receives the value and a sequential index.
      * @param f
@@ -137,7 +163,7 @@ export abstract class Enhancements<
     /**
      * Flatten the values yielded by applying the function to the values yielded by the generator to level _depth_.
      * Produces a generator that yields the individual values at each level in depth-first order. Any iterable
-     * (including Array) or iterator will be traversed and its values yielded.
+     * (including `Array`) or iterator will be traversed and its values yielded.
      *
      * The return type is currently over-broad
      * @param f
@@ -150,7 +176,7 @@ export abstract class Enhancements<
     }
 
     /**
-     * Return a new [[EnhancedGenerator]] that only yields the indicated values, skipping _start_ initial values
+     * Return a new enhanced [[Enhancements|Generator]] that only yields the indicated values, skipping _start_ initial values
      * and continuing until the _end_.
      * @param start
      * @param end

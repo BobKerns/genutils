@@ -4,10 +4,8 @@
  * Github: https://github.com/BobKerns/genutils
  */
 /**
- * This entry point loads asynchronous extended generators
- * @packageDocumentation
- * @module future
- * @preferred
+ * A general facility for deferred computation, built atop `Promise`.
+ * @module Future
  */
 
 /**
@@ -16,6 +14,9 @@
  *
  * By default, the computation begins when the first _onfulfilled_ handler is added with {@link then}, but
  * if the _delay_ parameter is supplied as `true` an explicit call to the {@link eval} method is required.
+ *
+ * This can be used to delay initiating a computation until a certain elapsed time (using [[delay]]) or
+ * until some event has occurred.
  */
 export class Future<T> extends Promise<T> {
     #fn?: () => T;

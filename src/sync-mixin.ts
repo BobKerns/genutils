@@ -5,15 +5,18 @@
  */
 
 /**
- * Mixin for synchronous iterables.
+ * {@link Sync.Mixin} for synchronous iterables.
  *
- * @module
+ * See also {@link Async.Mixin}
+ *
+ * @module Sync.Mixin
  */
 
 import { IEnhancements } from "./ienhancement";
-import { Sync } from "./sync";
+import { impl } from "./sync-impl";
 import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncEnhancedConstructor, SyncType } from "./types";
 
+export namespace Sync {
 /**
  * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
  * it were an array, in supporting methods such as {@link IEnhancements.map|.map()} and {@link IEnhancements.filter|.filter()}.
@@ -38,14 +41,14 @@ import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, R
  * @param Base a constructor for a class that implements `Iterable`.
  * @returns a new constructor for an enhanced class.
  */
-export function SyncMixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): new (...args: any[]) => SyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
-    class SyncMixin extends Base implements IEnhancements<T, TReturn, TNext, 'sync'> {
+export function Mixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): new (...args: any[]) => SyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
+    class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'sync'> {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);
         }
         #iter() {
-            return Sync.enhance(this[Symbol.iterator]() as Iterator<T, TReturn, TNext>);
+            return impl.enhance(this[Symbol.iterator]() as Iterator<T, TReturn, TNext>);
         }
         asArray(): ReturnValue<T[], 'sync'> {
             return this.#iter().asArray();
@@ -116,5 +119,6 @@ export function SyncMixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): ne
         }
 
     }
-    return SyncMixin;
+    return Mixin;
+}
 }

@@ -10,7 +10,6 @@
  * @module genutils
  */
 
-
 export {
     isIterable, isIterator, toIterable, toIterator, toIterableIterator,
     toGenerator, isGenerator, isGenable, isIterableIterator,
@@ -20,7 +19,7 @@ export {
 } from './functions';
 export {range} from './range';
 export {
-    Sync, Async, SyncType
+    SyncType
 } from './generators';
 export type {
     Genable, GenUnion, FlatGen, GenType, Reducer,
@@ -38,5 +37,10 @@ export type {IEnhancements} from './ienhancement';
 export * from './sync-mixin';
 export * from './async-mixin';
 
-export { EnhancedGenerator } from './sync';
-export { EnhancedAsyncGenerator } from './async';
+export { EnhancedGenerator } from './sync-impl';
+export { EnhancedAsyncGenerator } from './async-impl';
+
+import { Constructor as BareConstructor, SyncEnhancedConstructor, AsyncEnhancedConstructor } from './types';
+
+export { Sync } from './sync';
+export { Async } from './async';

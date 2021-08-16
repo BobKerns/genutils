@@ -5,15 +5,18 @@
  */
 
 /**
- * Mixin for asynchronous iterables.
+ * {@link Async.Mixin} for asynchronous iterables.
  *
- * @module
+ * See also {@link Async.Mixin}
+ *
+ * @module Async.Mixin
  */
 
 import { IEnhancements } from "./ienhancement";
-import { Async } from "./async";
-import { AsyncEnhancedConstructor, Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType } from "./types";
+import { impl } from "./async-impl";
+import { AsyncEnhancedConstructor, Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue } from "./types";
 
+export namespace Async {
 /**
  * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
  * it were an array, in supporting methods such as {@link IEnhancements.map|.map()} and {@link IEnhancements.filter|.filter()}.
@@ -38,14 +41,15 @@ import { AsyncEnhancedConstructor, Constructor, Enhanced, Genable, IndexedFn, In
  * @param Base a constructor for a class that implements `AsyncIterable`.
  * @returns a new constructor for an enhanced class.
  */
-export function AsyncMixin<T, TReturn, TNext>(Base: Constructor<AsyncIterable<T>>): new (...args: any[]) => AsyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
-    class AsyncMixin extends Base implements IEnhancements<T, TReturn, TNext, 'async'> {
+export function Mixin<T, TReturn, TNext>(Base: Constructor<AsyncIterable<T>>): new (...args: any[]) =>
+    AsyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
+    class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'async'> {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);
         }
         #iter() {
-            return Async.enhance(this[Symbol.asyncIterator]() as AsyncIterator<T, TReturn, TNext>);
+            return impl.enhance(this[Symbol.asyncIterator]() as AsyncIterator<T, TReturn, TNext>);
         }
         asArray(): ReturnValue<T[], 'async'> {
             return this.#iter().asArray();
@@ -116,5 +120,6 @@ export function AsyncMixin<T, TReturn, TNext>(Base: Constructor<AsyncIterable<T>
         }
 
     }
-    return AsyncMixin;
+    return Mixin;
+}
 }
