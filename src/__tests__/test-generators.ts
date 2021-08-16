@@ -15,9 +15,11 @@
  * Test functions from the utils pkg
  */
 
-import {Sync, Async, SyncType} from "../generators";
+import {SyncType} from "../generators";
 import {Enhanced} from "../enhancements";
 import {range} from '../range';
+import {Sync} from '../sync';
+import {Async} from '../async';
 
 /**
  * A functional version of the throw statement.

@@ -14,7 +14,9 @@
 
 import { toGenerator } from "./functions";
 import { IEnhancements } from "./ienhancement";
-import { Sync as S } from "./sync";
+import type { Sync as S } from "./sync";
+import { impl } from './sync-impl';
+import { Sync as SyncMixin} from "./sync-mixin";
 
 type IteratorFn<T, PARAMS extends any[] = []> = (...args: PARAMS) => Iterator<T>;
 
@@ -24,11 +26,11 @@ class SyncFunctionWrapperBase<T, PARAMS extends any[] = []> {
         this.#fn = (fn as IteratorFn<T, any[]>).bind(this, ...args);
     }
     [Symbol.iterator](): S.Generator<T, any, undefined> {
-       return S.enhance(toGenerator(this.#fn()));
+       return impl.enhance(toGenerator(this.#fn()));
     }
 }
 
-class SyncFunctionWrapper<T, PARAMS extends any[] = []> extends S.Mixin(SyncFunctionWrapperBase) {
+class SyncFunctionWrapper<T, PARAMS extends any[] = []> extends SyncMixin.Mixin(SyncFunctionWrapperBase) {
     constructor(fn: IteratorFn<T, PARAMS>, args: PARAMS) {
         super(fn, args);
     }
