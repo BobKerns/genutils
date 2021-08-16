@@ -5,12 +5,36 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.5.0/styles/xcode.css" integrity="sha256-OI7B0pICACICPVbs30FdQ/l6qL8TnsfhyGAdg5m5NzQ=" crossorigin="anonymous">
 </head>
 <body><h1 id="changelog">Changelog</h1>
+<h2 id="release-100">Release 1.0.0</h2>
+<p><strong>date: 2021-08-15</strong></p>
+<h3 id="new-features">New Features</h3>
+<ul>
+<li>The enhanced generator types are now exported as <code>Sync.Generator</code> and <code>Async.Generator</code>.</li>
+<li>The literal types <code>&#39;sync&#39;</code> and <code>&#39;async&#39;</code> are available as <code>Sync.type</code> and `Async.type&#39;.</li>
+<li><code>Sync.wrap</code> and <code>Async.wrap</code> take a function returning an iterator and return an iterable object that
+ invokes that function, along with the enhanced methods like <code>map()</code> and <code>filter()</code>, allowing them to be
+ treated in a manner similar to an array.</li>
+</ul>
+<h3 id="incompatible-changes">Incompatible Changes</h3>
+<ul>
+<li>[typescript] If you import directly from the <code>&#39;sync&#39;</code> or <code>&#39;async&#39;</code> modules, the <code>Sync</code> or <code>Async</code> exported from there
+ is no longer the literal type &#39;<code>sync&#39;</code> or <code>&#39;async&#39;</code>, but rather the <code>Sync</code> or <code>Async.type</code> or <code>Async.type</code>
+ instead.</li>
+</ul>
+<h3 id="other-changes">Other Changes</h3>
+<ul>
+<li>Make <code>Sync</code> and <code>Async</code> exports be namespaces.</li>
+<li>Export <code>EnhancedGenerator</code> and <code>EnhnancedAsyncGenerator</code> as <code>Sync.Generator</code> and <code>Async.Generator</code></li>
+<li>Export the mixins as <code>Sync.Mixin</code> and <code>Async.Mixin</code></li>
+<li>Add <code>Sync.wrap</code> and <code>Async.wrap</code></li>
+<li>Prune and enhance the documentation.</li>
+</ul>
 <h2 id="version-0145">Version 0.1.45</h2>
 <p><strong>date: 2021-08-13</strong></p>
 <ul>
 <li>Export new types.</li>
 </ul>
-<h2 id="version-0145-1">Version 0.1.45</h2>
+<h2 id="version-0146">Version 0.1.46</h2>
 <p><strong>date: 2021-08-13</strong></p>
 <ul>
 <li>Small documentation fix for enhanced iterables.</li>
