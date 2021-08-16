@@ -851,11 +851,12 @@ export type UnwrapArray<T> = T extends Array<infer E> ? E : never;
 /**
  * @internal
  */
-export type Constructor<T extends {}> = new (...args: any[]) => T;
+export type Constructor<T extends {}> = abstract new (...args: any[]) => T;
 /**
  * @internal
  */
-export type ConstructorType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : never;
+export type ConstructorType<T extends abstract new (...args: any[]) => any> =
+    T extends abstract new (...args: any[]) => infer R ? R : never;
 /**
  * Type produced by {@link Sync.Mixin}.
  */

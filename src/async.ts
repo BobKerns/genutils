@@ -201,11 +201,14 @@ export namespace Async {
      *   }
      * }
      *
-     * const MyEnhancedAsyncIterable = AsyncMixin(MyAsyncIterable);
-     * type MyEnhancedAsyncIterable = ConstructorType<typeof MyEnhancedAsyncIterable>;
+     * class MyEnhancedAsyncIterable extemds Async.Mixin(MyAsyncIterable) {
+     *     constructor() {
+     *         super();
+     *     }
+     * }
      * const foo = new MyEnhancedAsyncIterable();
      * await foo.map(i => i * 2).toArray(); => [2, 4, 6]
-     * awaot foo.map(i => i + 2).toArray(); => [3, 4, 5]
+     * await foo.map(i => i + 2).toArray(); => [3, 4, 5]
      * ```
      * @param Base a constructor for a class that implements `AsyncIterable`.
      * @returns a new constructor for an enhanced class.

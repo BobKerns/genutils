@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 1.0.1
+
+__date: 2021-08-16__
+
+* Make `Sync.Mixin` and `Async.Mixin` work with abstract classes.
+
 ## Release 1.0.0
 
 __date: 2021-08-15__

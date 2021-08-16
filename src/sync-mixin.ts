@@ -32,8 +32,11 @@ export namespace Sync {
  *   }
  * }
  *
- * const MyEnhancedSyncIterable = SyncMixin(MySyncIterable);
- * type MyEnhancedSyncIterable = ConstructorType<typeof MyEnhancedSyncIterable>;
+ * class MyEnhancedSyncIterable extemds Sync.Mixin(MySyncIterable) {
+ *     constructor() {
+ *         super();
+ *     }
+ * }
  * const foo = new MyEnhancedSyncIterable();
  * foo.map(i => i * 2).toArray(); => [2, 4, 6]
  * foo.map(i => i + 2).toArray(); => [3, 4, 5]
@@ -41,8 +44,8 @@ export namespace Sync {
  * @param Base a constructor for a class that implements `Iterable`.
  * @returns a new constructor for an enhanced class.
  */
-export function Mixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): new (...args: any[]) => SyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
-    class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'sync'> {
+export function Mixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): abstract new (...args: any[]) => SyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
+    abstract class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'sync'> {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);

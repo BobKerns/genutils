@@ -186,7 +186,7 @@ export namespace Sync {
         ConstructorType<Base> & IEnhancements<T, TReturn, TNext, Sync.type>;
 
     /**
-     * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
+     * Given an abstract class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
      * it were an array, in supporting methods such as {@link IEnhancements.map|.map()} and {@link IEnhancements.filter|.filter()}.
      *
      * Usage:
@@ -200,8 +200,11 @@ export namespace Sync {
      *   }
      * }
      *
-     * const MyEnhancedSyncIterable = SyncMixin(MySyncIterable);
-     * type MyEnhancedSyncIterable = ConstructorType<typeof MyEnhancedSyncIterable>;
+     * class MyEnhancedSyncIterable extemds Sync.Mixin(MySyncIterable) {
+     *     constructor() {
+     *         super();
+     *     }
+     * }
      * const foo = new MyEnhancedSyncIterable();
      * foo.map(i => i * 2).toArray(); => [2, 4, 6]
      * foo.map(i => i + 2).toArray(); => [3, 4, 5]
