@@ -32,14 +32,14 @@ export namespace Sync {
  *   }
  * }
  *
- * class MyEnhancedSyncIterable extemds Sync.Mixin(MySyncIterable) {
+ * class MyEnhancedSyncIterable extends Sync.Mixin(MySyncIterable) {
  *     constructor() {
  *         super();
  *     }
  * }
  * const foo = new MyEnhancedSyncIterable();
- * foo.map(i => i * 2).toArray(); => [2, 4, 6]
- * foo.map(i => i + 2).toArray(); => [3, 4, 5]
+ * foo.map(i => i * 2).asArray(); // => [2, 4, 6]
+ * foo.map(i => i + 2).asArray(); // => [3, 4, 5]
  * ```
  * @param Base a constructor for a class that implements `Iterable`.
  * @returns a new constructor for an enhanced class.
