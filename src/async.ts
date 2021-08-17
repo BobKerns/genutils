@@ -8,11 +8,11 @@
  * {@link Async} namespace.
  *
  * @module Async
+ * @ignore
  */
 
 import { EnhancedAsyncGenerator, impl } from "./async-impl";
 import { Enhancements } from "./enhancements";
-import { IEnhancements } from "./ienhancement";
 
 
 const makeProto = (base: any) => {
@@ -50,7 +50,7 @@ Object.defineProperty(EnhancedAsyncGenerator.prototype, '_impl', {
     configurable: false
 });
 
-import { Constructor as BareConstructor, ConstructorType } from "./types";
+import { Constructor as BareConstructor } from "./types";
 
 import { Async as AsyncMixin } from './async-mixin';
 import { Async as AsyncWrap } from './async-wrap';
@@ -182,9 +182,6 @@ export namespace Async {
      * See also {@link Sync.Generator}
      */
     export type Generator<T,TReturn, TNext> = EnhancedAsyncGenerator<T, TReturn, TNext>;
-
-    export type Constructor<T, TReturn, TNext, Base extends BareConstructor<AsyncIterable<T>>> =
-        ConstructorType<Base> & IEnhancements<T, TReturn, TNext, Async.type>;
 
     /**
      * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if

@@ -49,7 +49,7 @@ Object.defineProperty(EnhancedGenerator.prototype, '_impl', {
     configurable: false
 });
 
-import { Constructor as BareConstructor, ConstructorType } from "./types";
+import { Constructor as BareConstructor } from "./types";
 
 
 import { Sync as SyncMixin } from './sync-mixin';
@@ -181,9 +181,6 @@ export namespace Sync {
      * See also {@link Sync.Generator}
      */
     export type Generator<T,TReturn, TNext> = EnhancedGenerator<T, TReturn, TNext>;
-
-    export type Constructor<T, TReturn, TNext, Base extends BareConstructor<Iterable<T>>> =
-        ConstructorType<Base> & IEnhancements<T, TReturn, TNext, Sync.type>;
 
     /**
      * Given an abstract class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if

@@ -23,7 +23,7 @@ export {
 } from './generators';
 export type {
     Genable, GenUnion, FlatGen, GenType, Reducer,
-    Constructor, ConstructorType, IteratorValue as IteratorType
+    Constructor, IteratorValue as IteratorType
 } from './types';
 
 export {

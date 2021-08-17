@@ -13,7 +13,8 @@
  */
 
 import { impl } from "./async-impl";
-import { Constructor, ConstructorType, Enhanced, Genable, IndexedFn, IndexedPredicate, IteratorValue, Reducer, ReturnValue } from "./types";
+import { IEnhancements } from "./ienhancement";
+import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, IteratorValue, Reducer, ReturnValue } from "./types";
 
 export namespace Async {
 /**
@@ -45,12 +46,13 @@ export namespace Async {
  */
 export function Mixin<
     B extends Constructor<AsyncIterable<any>>,
-    I extends ConstructorType<B>,
+    P extends ConstructorParameters<B>,
+    I extends InstanceType<B>,
     T extends IteratorValue<I>,
     TReturn = any,
     TNext = undefined
     >(Base: B) {
-    abstract class Mixin extends Base {
+    abstract class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'async'> {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);
@@ -126,6 +128,6 @@ export function Mixin<
             }
         }
     }
-    return Mixin;
+    return Mixin as unknown as Constructor<I & IEnhancements<T, any, undefined, 'async'>, P>;
 }
 }

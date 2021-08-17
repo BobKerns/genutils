@@ -10,7 +10,6 @@
 import {Enhancements} from "./enhancements";
 import type {EnhancedGenerator} from "./sync-impl";
 import type {EnhancedAsyncGenerator} from "./async-impl";
-import { IEnhancements } from "./ienhancement";
 
 /**
  * Like `Iterable<T>` except allows specifying `TReturn` and `TNext`.
@@ -851,18 +850,13 @@ export type UnwrapArray<T> = T extends Array<infer E> ? E : never;
 /**
  * @internal
  */
-export type Constructor<T extends {}> = abstract new (...args: any[]) => T;
-/**
- * @internal
- */
-export type ConstructorType<T extends abstract new (...args: any[]) => any> =
-    T extends abstract new (...args: any[]) => infer R ? R : never;
+export type Constructor<T extends {}, P extends any[] = any[]> = abstract new (...args: P) => T;
 
 /**
  * Extract the value type being iterated over. _I_ can be an iterator type or an iterable type, synchronous or asynchronous.
  * @typeParam A type describing an iteration.
  */
-export type IteratorValue<I extends Iterator<any> | AsyncIterator<any> | Iterable<any> | AsyncIterable<any>> =
+export type IteratorValue<I> =
     I extends Iterator<infer T>
     ? T
     : I extends AsyncIterator<infer T>
