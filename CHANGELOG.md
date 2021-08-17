@@ -4,8 +4,10 @@
 
 __date: 202108-16__
 
-* [BUGFIX] types weren't being passed on through `Sync.Mixin` and `Async.Mixin`.
-* Remove unused types `SyncEnhancedConstructor`, `AsyncEnhancedConstructor`. This should not be a breaking change for anyone.
+* [BUGFIX] types weren't being passed on through `Sync.Mixin` and `Async.Mixin`. The constructed class now defines
+  all the properties of the base class, and required the same constructor arguments.
+* Remove unused types `SyncEnhancedConstructor`, `AsyncEnhancedConstructor`, `Constructor`, `ConstructorType`.
+  This should not be a breaking change for anyone.
 * Add type `IteratorValue` to extract the type of values being iterated over.
 
 ## Release 1.0.1
