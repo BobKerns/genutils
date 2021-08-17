@@ -17,23 +17,22 @@ import { toAsyncGenerator } from "./functions";
 import type { Async as A } from './async';
 import { impl } from './async-impl';
 import { Async as AsyncMixin } from './async-mixin';
-import { IEnhancements } from "./ienhancement";
 
-type AsyncIteratorFn<T, PARAMS extends any[] = []> = (...args: PARAMS) => AsyncIterator<T>;
+type AsyncIteratorFn<T = any, PARAMS extends any[] = any[]> = (...args: PARAMS) => AsyncIterator<T>;
 
-class AsyncFunctionWrapperBase<T, PARAMS extends any[] = []> implements AsyncIterable<T> {
+class AsyncFunctionWrapperBase<T = any, PARAMS extends any[] = any[]> implements AsyncIterable<T> {
     #fn: AsyncIteratorFn<T, []>;
     constructor(fn: AsyncIteratorFn<T, PARAMS>, args: PARAMS) {
-        this.#fn = (fn as AsyncIteratorFn<T, any[]>).bind(this, ...args);
+        this.#fn = (fn as AsyncIteratorFn).bind(this, ...args);
     }
     [Symbol.asyncIterator](): A.Generator<T, any, undefined> {
        return impl.enhance(toAsyncGenerator(this.#fn()));
     }
 }
 
-class AsyncFunctionWrapper<T, PARAMS extends any[] = []> extends AsyncMixin.Mixin(AsyncFunctionWrapperBase) {
+export class AsyncFunctionWrapper<T = any, PARAMS extends any[] = any[]> extends AsyncMixin.Mixin(AsyncFunctionWrapperBase) {
     constructor(fn: AsyncIteratorFn<T, PARAMS>, args: PARAMS) {
-        super(fn, args);
+        super(fn as AsyncIteratorFn, args);
     }
 }
 
@@ -45,6 +44,6 @@ export namespace Async {
      * @param args Arguments to be passed to the function
      * @returns
      */
-    export const wrap = <T, PARAMS extends any[]>(fn: AsyncIteratorFn<T, PARAMS>, ...args: PARAMS) =>
-        new AsyncFunctionWrapper<T, PARAMS>(fn, args) as AsyncIterable<T> & IEnhancements<T, any, undefined, 'async'>;
+    export const wrap = <T = any, PARAMS extends any[] = any[]>(fn: AsyncIteratorFn<T, PARAMS>, ...args: PARAMS) =>
+        new AsyncFunctionWrapper<T, PARAMS>(fn, args);
 }

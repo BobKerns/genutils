@@ -13,26 +13,25 @@
  */
 
 import { toGenerator } from "./functions";
-import { IEnhancements } from "./ienhancement";
 import type { Sync as S } from "./sync";
 import { impl } from './sync-impl';
 import { Sync as SyncMixin} from "./sync-mixin";
 
-type IteratorFn<T, PARAMS extends any[] = []> = (...args: PARAMS) => Iterator<T>;
+type IteratorFn<T = any, PARAMS extends any[] = any[]> = (...args: PARAMS) => Iterator<T>;
 
-class SyncFunctionWrapperBase<T, PARAMS extends any[] = []> {
+class SyncFunctionWrapperBase<T = any, PARAMS extends any[] = any[]> {
     #fn: IteratorFn<T, []>;
     constructor(fn: IteratorFn<T, PARAMS>, args: PARAMS) {
-        this.#fn = (fn as IteratorFn<T, any[]>).bind(this, ...args);
+        this.#fn = (fn as IteratorFn).bind(this, ...args);
     }
     [Symbol.iterator](): S.Generator<T, any, undefined> {
        return impl.enhance(toGenerator(this.#fn()));
     }
 }
 
-class SyncFunctionWrapper<T, PARAMS extends any[] = []> extends SyncMixin.Mixin(SyncFunctionWrapperBase) {
+export class SyncFunctionWrapper<T, PARAMS extends any[] = []> extends SyncMixin.Mixin(SyncFunctionWrapperBase) {
     constructor(fn: IteratorFn<T, PARAMS>, args: PARAMS) {
-        super(fn, args);
+        super(fn as IteratorFn, args as any[]);
     }
 }
 
@@ -44,6 +43,6 @@ export namespace Sync {
      * @param args Arguments to be passed to the function
      * @returns
      */
-    export const wrap = <T, PARAMS extends any[]>(fn: IteratorFn<T, PARAMS>, ...args: PARAMS) =>
-        new SyncFunctionWrapper<T, PARAMS>(fn, args) as Iterable<T> & IEnhancements<T, any, undefined, S.type>;
+    export const wrap = <T = any, PARAMS extends any[] = any[]>(fn: IteratorFn<T, PARAMS>, ...args: PARAMS) =>
+        new SyncFunctionWrapper<T, PARAMS>(fn, args);
 }
