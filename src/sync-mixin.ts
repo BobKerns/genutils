@@ -12,9 +12,8 @@
  * @module Sync.Mixin
  */
 
-import { IEnhancements } from "./ienhancement";
 import { impl } from "./sync-impl";
-import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncEnhancedConstructor, SyncType } from "./types";
+import { Constructor, ConstructorType, Enhanced, Genable, IndexedFn, IndexedPredicate, IteratorValue, Reducer, ReturnValue } from "./types";
 
 export namespace Sync {
 /**
@@ -44,8 +43,15 @@ export namespace Sync {
  * @param Base a constructor for a class that implements `Iterable`.
  * @returns a new constructor for an enhanced class.
  */
-export function Mixin<T, TReturn, TNext>(Base: Constructor<Iterable<T>>): abstract new (...args: any[]) => SyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
-    abstract class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'sync'> {
+export function Mixin<
+    B extends Constructor<Iterable<any>>,
+    I extends ConstructorType<B>,
+    T extends IteratorValue<I>,
+    TReturn = any,
+    TNext = undefined
+    >(Base: B)
+    {
+    abstract class Mixin extends Base {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);

@@ -857,11 +857,18 @@ export type Constructor<T extends {}> = abstract new (...args: any[]) => T;
  */
 export type ConstructorType<T extends abstract new (...args: any[]) => any> =
     T extends abstract new (...args: any[]) => infer R ? R : never;
+
 /**
- * Type produced by {@link Sync.Mixin}.
+ * Extract the value type being iterated over. _I_ can be an iterator type or an iterable type, synchronous or asynchronous.
+ * @typeParam A type describing an iteration.
  */
-export type SyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<Iterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'sync'>;
-/**
- * Type produced by {@link Async.Mixin}.
- */
-export type AsyncEnhancedConstructor<T, TReturn, TNext, Base extends Constructor<AsyncIterable<T>>> = ConstructorType<Base> & IEnhancements<T, TReturn, TNext, 'async'>;
+export type IteratorValue<I extends Iterator<any> | AsyncIterator<any> | Iterable<any> | AsyncIterable<any>> =
+    I extends Iterator<infer T>
+    ? T
+    : I extends AsyncIterator<infer T>
+    ? T
+    : I extends Iterable<infer T>
+    ? T
+    : I extends AsyncIterable<infer T>
+    ? T
+    : never;

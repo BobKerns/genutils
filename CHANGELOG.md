@@ -1,5 +1,13 @@
 # Changelog
 
+## Release 1.0.2
+
+__date: 202108-16__
+
+* [BUGFIX] types weren't being passed on through `Sync.Mixin` and `Async.Mixin`.
+* Remove unused types `SyncEnhancedConstructor`, `AsyncEnhancedConstructor`. This should not be a breaking change for anyone.
+* Add type `IteratorValue` to extract the type of values being iterated over.
+
 ## Release 1.0.1
 
 __date: 2021-08-16__

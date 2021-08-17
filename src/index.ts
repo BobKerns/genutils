@@ -23,7 +23,7 @@ export {
 } from './generators';
 export type {
     Genable, GenUnion, FlatGen, GenType, Reducer,
-    Constructor, ConstructorType, SyncEnhancedConstructor, AsyncEnhancedConstructor
+    Constructor, ConstructorType, IteratorValue as IteratorType
 } from './types';
 
 export {
@@ -39,8 +39,6 @@ export * from './async-mixin';
 
 export { EnhancedGenerator } from './sync-impl';
 export { EnhancedAsyncGenerator } from './async-impl';
-
-import { Constructor as BareConstructor, SyncEnhancedConstructor, AsyncEnhancedConstructor } from './types';
 
 export { Sync } from './sync';
 export { Async } from './async';

@@ -12,9 +12,8 @@
  * @module Async.Mixin
  */
 
-import { IEnhancements } from "./ienhancement";
 import { impl } from "./async-impl";
-import { AsyncEnhancedConstructor, Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue } from "./types";
+import { Constructor, ConstructorType, Enhanced, Genable, IndexedFn, IndexedPredicate, IteratorValue, Reducer, ReturnValue } from "./types";
 
 export namespace Async {
 /**
@@ -44,9 +43,14 @@ export namespace Async {
  * @param Base a constructor for a class that implements `AsyncIterable`.
  * @returns a new constructor for an enhanced class.
  */
-export function Mixin<T, TReturn, TNext>(Base: Constructor<AsyncIterable<T>>): new (...args: any[]) =>
-    AsyncEnhancedConstructor<T, TReturn, TNext, typeof Base> {
-    class Mixin extends Base implements IEnhancements<T, TReturn, TNext, 'async'> {
+export function Mixin<
+    B extends Constructor<AsyncIterable<any>>,
+    I extends ConstructorType<B>,
+    T extends IteratorValue<I>,
+    TReturn = any,
+    TNext = undefined
+    >(Base: B) {
+    abstract class Mixin extends Base {
         #tag?: string = undefined;
         constructor(...args: any[]) {
             super(...args);
@@ -121,7 +125,6 @@ export function Mixin<T, TReturn, TNext>(Base: Constructor<AsyncIterable<T>>): n
                 return `SyncMixin(${Base.name}).prototype`;
             }
         }
-
     }
     return Mixin;
 }
