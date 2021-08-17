@@ -119,13 +119,13 @@ export function Mixin<
         get [Symbol.toStringTag]() {
             try {
                 return this.#tag
-                    ?? (this.#tag = `SyncMixin(${Base.name})`);
+                    ?? (this.#tag = `Sync.Mixin(${Base.name})`);
             } catch {
                 // This can happen when viewing the prototype, because #tag isn't declared
                 // on the prototype. That screws up ObservableHQ's inspector, which gets an unhandled
                 // failed promise and never completes if you try to expand the real instance, because
                 // it died on the prototype.
-                return `SyncMixin(${Base.name}).prototype`;
+                return `Sync.Mixin(${Base.name}).prototype`;
             }
         }
 

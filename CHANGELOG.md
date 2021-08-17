@@ -1,8 +1,14 @@
 # Changelog
 
+## Release 1.0.3
+
+__date: 2021-08-16__
+
+* Cosmetic change to toStringTag of the mixins.
+
 ## Release 1.0.2
 
-__date: 202108-16__
+__date: 2021-08-16__
 
 * [BUGFIX] types weren't being passed on through `Sync.Mixin` and `Async.Mixin`. The constructed class now defines
   all the properties of the base class, and required the same constructor arguments.
