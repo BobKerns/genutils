@@ -1,5 +1,17 @@
 # Changelog
 
+## Release 1.0.4
+
+__date: 2021-08-24__
+
+* Build using `tsc` to avoid a polyfill that subtly breaks our generators contributed by the rollup plugin.
+  An iterator without a `.throw()` method is not the same as an iterator with a `.throw()` method that throws
+  an error saying there's no .throw() method!
+
+  This should result in faster builds as well.
+* `npm run serve` now serves on port 3030 (if available).
+* No code changes.
+
 ## Release 1.0.3
 
 __date: 2021-08-16__

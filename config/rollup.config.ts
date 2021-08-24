@@ -9,15 +9,11 @@
 
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
 import {terser} from 'rollup-plugin-terser';
 import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
 import {join, dirname, basename, extname, relative} from 'path';
-import serve from 'rollup-plugin-serve';
-
-const SERVE_PORT = Number.parseInt(process.env.SERVE_PORT ?? '5555');
 
 /**
  * The visualizer plugin fails to set the plugin name. We wrap it to remedy that.
@@ -34,8 +30,6 @@ const visualizer = (opts?: Partial<VisualizerOptions>) => {
 const mode = process.env.NODE_ENV;
 // noinspection JSUnusedLocalSymbols
 const dev = mode === 'development';
-const serve_mode = process.env.SERVE && dev;
-const serve_doc = process.env.SERVE_DOC && serve_mode;
 
 /**
  * Avoid non-support of ?. optional chaining.
@@ -117,7 +111,7 @@ const globalsChecked: {[k:string]: string | false} = {};
  */
 const checkExternal = (id: string, from?: string, resolved?: boolean): boolean =>
     {
-        const isExternal = !/denque|src\/.*[.]ts$/.test(id) && (resolved
+        const isExternal = !/denque|\/build\/src\/.*[.]js$/.test(id) && (resolved
             ? /\/node_modules\//.test(id)
             : !/^\./.test(id));
         const ext = globals[id] ?? '(missing)';
@@ -143,17 +137,6 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
             // Check for these in package.json
             mainFields: mainFields(pkg, ['module', 'main', 'browser']),
         }),
-        typescript({
-            tsconfig: 'src/tsconfig.json',
-            include: "**/*.ts",
-            verbosity: 1,
-            cacheRoot: "./build/rts2-cache",
-            // false = Put the declaration files into the regular output in lib/
-            useTsconfigDeclarationDir: false,
-            tsconfigOverride: {
-                "tsBuildInfoFile": `../build/tsbuild-info-${basename(src, ".d.ts")}`,
-            }
-         }),
         commonjs({
             extensions: [".js", ".ts"]
         }),
@@ -163,30 +146,21 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
         })
         ] : [],
         visualizer({
-            filename: "build/build-stats.html",
+            filename: `build/build-stats-${name}.html`,
             title: "Build Stats"
-        }),
-        ...serve_mode && once++ === 0 ? [
-            serve({
-                open: !!serve_doc,
-                verbose: true,
-                port: SERVE_PORT,
-                contentBase: '',
-                openPage: '/build/docs/api/index.html'
-            })
-        ] : []
+        })
     ]
 });
 
 // noinspection JSUnusedGlobalSymbols
 export default [
-    options('./src/index.ts', 'genutils'),
-    options('./src/functions.ts', 'functions'),
-    options('./src/range.ts', 'range'),
-    options('./src/enhancements.ts', 'enhancements'),
-    options('./src/async.ts', 'async'),
-    options('./src/sync.ts', 'sync'),
-    options('./src/generators.ts', 'generators'),
-    options('./src/events.ts', 'events'),
-    options('./src/future.ts', 'future')
+    options('./build/src/index.js', 'genutils'),
+    options('./build/src/functions.js', 'functions'),
+    options('./build/src/range.js', 'range'),
+    options('./build/src/enhancements.js', 'enhancements'),
+    options('./build/src/async.js', 'async'),
+    options('./build/src/sync.js', 'sync'),
+    options('./build/src/generators.js', 'generators'),
+    options('./build/src/events.js', 'events'),
+    options('./build/src/future.js', 'future')
     ];

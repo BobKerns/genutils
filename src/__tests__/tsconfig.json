@@ -11,10 +11,11 @@
   "exclude": ["node_modules"],
 
   "references": [
-    // {"path": "../tsconfig.json"}
+    {"path": "../tsconfig.json"}
   ],
 
   "compilerOptions": {
+    "composite": true,
     "incremental": true,
     "tsBuildInfoFile": "../../build/tsbuild-info-src-tests",
     // Project layout. Changes not recommended.

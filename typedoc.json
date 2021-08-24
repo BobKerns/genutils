@@ -2,5 +2,7 @@
   "exclude": "**/__tests__/**",
   "name": "Genutils",
   "readme": "src/README.md",
-  "includes": "./"
+  "includes": "./",
+  "includeVersion": true,
+  "excludeInternal": true
 }
