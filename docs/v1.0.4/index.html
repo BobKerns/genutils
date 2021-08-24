@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Release 1.0.4</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.5.0/styles/xcode.css" integrity="sha256-OI7B0pICACICPVbs30FdQ/l6qL8TnsfhyGAdg5m5NzQ=" crossorigin="anonymous">
+</head>
+<body><h1 id="release-104">Release 1.0.4</h1>
+<pre><code>__date: 2021-08-24__
+</code></pre>
+<ul>
+<li><p>Build using <code>tsc</code> to avoid a polyfill that subtly breaks our generators contributed by the rollup plugin.
+An iterator without a <code>.throw()</code> method is not the same as an iterator with a <code>.throw()</code> method that throws
+an error saying there&#39;s no .throw() method!</p>
+<p>This should result in faster builds as well.</p>
+</li>
+<li><p><code>npm run serve</code> now serves on port 3030 (if available).</p>
+</li>
+<li><p>No code changes.</p>
+</li>
+<li><p><a href=api/index.html >API documentation</a></p>
+</li>
+<li><p><a href=../CHANGELOG.html >CHANGELOG</a></p>
+</li>
+<li><p><a href=https://github.com/BobKerns/genutils.git >GitHub</a></p>
+</li>
+<li><p><a href=https://github.com/BobKerns/genutils.git/tree/v1.0.4/ >GitHub v1.0.4 tree</a></p>
+</li>
+</ul>
+</body>
+</html>

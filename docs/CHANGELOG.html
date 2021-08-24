@@ -5,6 +5,19 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.5.0/styles/xcode.css" integrity="sha256-OI7B0pICACICPVbs30FdQ/l6qL8TnsfhyGAdg5m5NzQ=" crossorigin="anonymous">
 </head>
 <body><h1 id="changelog">Changelog</h1>
+<h2 id="release-104">Release 1.0.4</h2>
+<p><strong>date: 2021-08-24</strong></p>
+<ul>
+<li><p>Build using <code>tsc</code> to avoid a polyfill that subtly breaks our generators contributed by the rollup plugin.
+An iterator without a <code>.throw()</code> method is not the same as an iterator with a <code>.throw()</code> method that throws
+an error saying there&#39;s no .throw() method!</p>
+<p>This should result in faster builds as well.</p>
+</li>
+<li><p><code>npm run serve</code> now serves on port 3030 (if available).</p>
+</li>
+<li><p>No code changes.</p>
+</li>
+</ul>
 <h2 id="release-103">Release 1.0.3</h2>
 <p><strong>date: 2021-08-16</strong></p>
 <ul>
