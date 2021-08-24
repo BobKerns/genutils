@@ -1,5 +1,12 @@
 # Changelog
 
+## Release 1.0.5
+
+__date: 2021-08-24__
+
+* Update dev dependencies.
+* No code changes.
+
 ## Release 1.0.4
 
 __date: 2021-08-24__
