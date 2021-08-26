@@ -1,13 +1,15 @@
 # Changelog
 
+## Release 1.0.7
+
 ## Release 1.0.6
 
 __date: 2021-08-26__
 
-* FIX: Propagate types and sourcemaps
-* FIX: Use the right prorotype for Sync.enhance
-* DEV: Make the `npm run serve` command be more useful.
-* DOC: Various fixes.
+* **FIX**: Propagate types and sourcemaps
+* **FIX**: Use the right prorotype for Sync.enhance
+* **DEV**: Make the `npm run serve` command be more useful.
+* **DOC**: Various fixes.
 
 ## Release 1.0.5
 
