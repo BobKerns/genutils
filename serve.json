@@ -1,10 +1,35 @@
 {
   "cleanUrls": false,
   "trailingSlash": true,
-  "public": "build/docs/api/",
+  "redirects": [
+      { "source": "/", "destination": "/docs/index.html"},
+      { "source": "/index.html", "destination": "/docs/index.html"},
+      { "source": "/docs", "destination": "/docs/index.html"}
+  ],
   "rewrites": [
-    {"source": "/",
-      "destination": "/index.html"
-    }
-  ]
+    { "source": "/docs/:p1", "destination": "/build/docs/api/:p1"},
+    { "source": "/docs/:p1/:p2", "destination": "/build/docs/api/:p1/:p2"},
+    { "source": "/docs/:p1/:p2/:p3", "destination": "/build/docs/api/:p1/:p2/:p3"},
+    { "source": "/docs/:p1/:p2/:p3/:p4", "destination": "/build/docs/api/:p1/:p2/:p3/:p4"}
+  ],
+  "headers": [
+        {
+            "source": "**/*.*",
+            "headers" : [
+                {
+                    "key": "Cache-Control",
+                    "value": "max-age=0, must-revalidate"
+                }
+            ]
+        },
+        {
+            "source": "404.html",
+            "headers" : [
+                {
+                    "key": "Cache-Control",
+                    "value": "max-age=0, must-revalidate"
+                }
+            ]
+        }
+    ]
 }
