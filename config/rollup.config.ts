@@ -159,7 +159,6 @@ export default [
     options('./build/src/index.js', 'genutils'),
     options('./build/src/functions.js', 'functions'),
     options('./build/src/range.js', 'range'),
-    options('./build/src/enhancements.js', 'enhancements'),
     options('./build/src/async.js', 'async'),
     options('./build/src/sync.js', 'sync'),
     options('./build/src/generators.js', 'generators'),
