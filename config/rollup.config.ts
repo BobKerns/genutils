@@ -11,6 +11,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import {terser} from 'rollup-plugin-terser';
 import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
 import {join, dirname, basename, extname, relative} from 'path';
@@ -133,6 +134,7 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     output: outputs(pkg)(src, name),
     external: checkExternal,
     plugins: [
+        sourcemaps(),
         resolve({
             // Check for these in package.json
             mainFields: mainFields(pkg, ['module', 'main', 'browser']),

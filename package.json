@@ -15,6 +15,7 @@
     "test": "npm run build:test",
     "prebuild": "npm run build:compile",
     "build:package": "rollup -c",
+    "postbuild:package": "rm -rf lib/types; mkdir lib/types & cp build/src/*.d.ts* lib/types/",
     "build": "npm run build:package",
     "all": "npm run build && npm run build:test && npm run build:docs",
     "clean": "rm -rf build lib docs",
@@ -49,7 +50,8 @@
   },
   "homepage": "https://github.com/BobKerns/genutils#readme",
   "dependencies": {
-    "denque": "^2.0.0"
+    "denque": "^2.0.0",
+    "rollup-plugin-sourcemaps": "^0.6.3"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^20.0.0",
