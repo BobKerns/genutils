@@ -1100,7 +1100,7 @@ class Sync_ implements GeneratorOps<sync> {
         const proto = Object.create(EnhancedGenerator.prototype);
         proto.return = (v: TReturn) => (gen2.returning = v, old.return.call(gen2, v));
         proto[Symbol.iterator] = () => gen2;
-        Object.setPrototypeOf(gen2, EnhancedGenerator.prototype);
+        Object.setPrototypeOf(gen2, proto);
         return gen2 as EnhancedGenerator<T, TReturn, TNext>;
     }
 }
