@@ -5,7 +5,7 @@
  */
 /**
  * This provides the trampoline methods that are shared between synchronous and
- * asynchronous enhanced generators. Methods dispatch to {@link Sync} or {@link async}
+ * asynchronous enhanced generators. Methods dispatch to {@link Sync} or {@link Async}
  * as appropriate.
  *
  * This becomes part of the prototype chain of enhanced generator instances. It does
@@ -15,9 +15,8 @@
  * type that covers both sync and async enhanced generators, use {@link Enhanced} (for,
  * generators) or the {@link GeneratorOps} interface (for the functional interface).
  *
- * @packageDocumentation
- * @module enhancements
- * @preferred
+ 
+ * @module Enhancements
  */
 
 import {Enhanced, FlatGen, Genable, GeneratorOps, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapArray} from "./types";
@@ -108,7 +107,7 @@ export abstract class Enhancements<
 
     /**
      * Limit the number of values that can be generated. A `RangeError` is thrown if this limit is
-     * exceeded. See [[EnhancedGenerator.slice]] if you want to truncate.
+     * exceeded. See [[IEnhacements.slice|Generator.slice]] if you want to truncate.
      * @param max
      */
     limit(max: number): Enhanced<T, S, TReturn, TNext> {
@@ -276,8 +275,8 @@ export abstract class Enhancements<
      * Combines this generator with additional ones, returning a generator that produces a tuple with
      * each of their results, with this generator's result first.
      *
-     * Terminates when any generator terminates. To get other behaviors, use with [[EnhancedGenerator.repeat]] or
-     * [[EnhancedGenerator.repeatLast]].
+     * Terminates when any generator terminates. To get other behaviors, use with {@link IEnhancements.repeat|Generator.repeat}
+     * or {@link IEnhancements.repeatLast|Generator.repeatLast}.
      * @param gens
      */
 
@@ -289,10 +288,10 @@ export abstract class Enhancements<
     }
 
     /**
-     * Trivial, but handy, same as **Array.prototype.join**.
+     * Trivial, but handy, same as `Array.prototype.join`.
      * @param sep (default = ',').
      *
-     * See also [[EnhancedGenerator.join]]
+     * See also {@link EnhancedGenerator.join}
      */
     join(sep?: string): ReturnValue<string, S> {
         return this._impl.join(this, sep);

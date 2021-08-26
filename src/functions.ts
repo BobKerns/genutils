@@ -6,7 +6,7 @@
 /**
  * Functions to test (as typeguards) and coerce generators, iterators, etc.
  *
- * @module functions]
+ * @module functions
  */
 
 

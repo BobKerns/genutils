@@ -4,22 +4,25 @@
  * Github: https://github.com/BobKerns/retirement-simulator
  */
 
+/**
+ * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
+ * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map|.map()}
+ * or {@link IEnhancements.filter|.filter()}.
+ *
+ * @module IEnhancements
+ */
+
 import { Enhanced, FlatGen, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType } from "./types";
 
 /**
  * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
  * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map|.map()}
  * or {@link IEnhancements.filter|.filter()}.
- * 
- * @module
- */
-
-/**
- * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
- * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map|.map()}
- * or {@link IEnhancements.filter|.filter()}.
  *
- * See {@link SyncMixin} and {@link AsyncMixin}.
+ * The type parameter _S_ is either 'sync' or 'async', and controls whether synchronous or asynchronous interfaces are
+ * used. The {@link ReturnValue|ReturnValue<T,S>} expands to _T_ or `Promise<`_T_`>`, accordingly.
+ *
+ * See {@link Sync.Mixin} and {@link Async.Mixin}.
  */
 export interface IEnhancements<
         T, TReturn, TNext, S extends SyncType
@@ -27,20 +30,22 @@ export interface IEnhancements<
 {
     /**
      * Return all of the values from this generator as an array. You do not want to call this on an
-     * infinite generator (for obvious reasons); consider using [[EnhancedGenerator.slice]] or
-     * [[EnhancedGenerator.limit]] to limit the size before calling this.
+     * infinite generator (for obvious reasons); consider using [[IEnhancements.slice]] or
+     * [[IEnhancements.limit]] to limit the size before calling this.
      */
     asArray(): ReturnValue<T[], S>;
 
     /**
      * Limit the number of values that can be generated. A `RangeError` is thrown if this limit is
-     * exceeded. See [[EnhancedGenerator.slice]] if you want to truncate.
+     * exceeded. This is useful when you wish to abort an excessively large computation.
+     *
+     * Use [[IEnhancements.slice|]] with `0` as the first argument if you want to truncate.
      * @param max
      */
     limit(max: number): Enhanced<T, S, TReturn, TNext>
 
     /**
-     * Operate on each value produced by this generator. f is called with two values, the
+     * Operate on each value produced by this generator. The function _f_ is called with two values, the
      * value yielded by this generator and a sequential index.
      * @param f
      * @param thisArg Value to be supplied as context `this` for function _f_.
@@ -163,7 +168,7 @@ export interface IEnhancements<
      * Trivial, but handy, same as **Array.prototype.join**.
      * @param sep (default = ',').
      *
-     * See also [[EnhancedGenerator.join]]
+     * See also {@link EnhancedGenerator.join}
      */
     join(sep?: string): ReturnValue<string, S>;
 

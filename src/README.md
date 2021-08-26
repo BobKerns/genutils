@@ -6,8 +6,8 @@ to sync and async generators. Instead of producing arrays, these operations prod
 Generators can be enhanced with new methods, or functional programming can be used to construct
 operators on generators.
 
-The functional interface is available via the [[Sync]]<!-- @IGNORE PREVIOUS: link --> and
-[[Async]]<!-- @IGNORE PREVIOUS: link --> namespaces. Each provides the functions defined in the
+The functional interface is available via the [[Sync.Sync|Sync]]<!-- @IGNORE PREVIOUS: link --> and
+[[Async.Async|Async]]<!-- @IGNORE PREVIOUS: link --> namespaces. Each provides the functions defined in the
 [[GeneratorOps]]<!-- @IGNORE PREVIOUS: link --> interface.
 
 The functions and methods that take generators also take iterators and iterables, under a common
@@ -33,8 +33,8 @@ and associated {@link QueueFactory} functions.
 * The [[Async]]<!-- @IGNORE PREVIOUS: link --> module provides the asynchronouse enhanced generators.
 * The [[Future]]<!-- @IGNORE PREVIOUS: link --> module provides {@link Future Futures}.
 
-To import these modules, append the path '/lib/{*esm*,*cjs*,*umd*}/_module_', where:
+To import these modules, append the path '/lib/{**esm**,**cjs**,**umd**}/_module_', where:
 
-* `esm` for ECMAscript modules
-* `cjs` for Node.js when not using modules
-* `umd` for browsers when not using modules.
+* **esm** for ECMAscript modules
+* **cjs** for Node.js when not using modules
+* **umd** for browsers when not using modules.

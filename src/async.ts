@@ -8,7 +8,6 @@
  * {@link Async} namespace.
  *
  * @module Async
- * @ignore
  */
 
 import { EnhancedAsyncGenerator, impl } from "./async-impl";
