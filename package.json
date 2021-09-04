@@ -15,7 +15,7 @@
     "test": "npm run build:test",
     "prebuild": "npm run build:compile",
     "build:package": "rollup -c",
-    "postbuild:package": "rm -rf lib/types; mkdir lib/types & cp build/src/*.d.ts* lib/types/",
+    "postbuild:package": "rsync -a --delete --include='*.d.ts*' build/src/ lib/types/",
     "build": "npm run build:package",
     "all": "npm run build && npm run build:test && npm run build:docs",
     "clean": "rm -rf build lib docs",
