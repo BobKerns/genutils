@@ -9,6 +9,8 @@
   "compilerOptions": {
     "composite": true,
     "incremental": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "tsBuildInfoFile": "../build/tsbuild-info-src",
     // Project layout. Changes not recommended.
     "allowSyntheticDefaultImports": true,

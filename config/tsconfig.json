@@ -21,7 +21,6 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": false,
     "inlineSourceMap": true,
 
     // Speed up compilation. Not important at this scale.

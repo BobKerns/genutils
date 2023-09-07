@@ -17,10 +17,10 @@
   "compilerOptions": {
     "composite": true,
     "incremental": true,
+    "inlineSourceMap": true,
     "tsBuildInfoFile": "../../build/tsbuild-info-src-tests",
     // Project layout. Changes not recommended.
     "outDir": "../../build",
     "rootDir": "../.."
   }
 }
-
