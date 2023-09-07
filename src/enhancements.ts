@@ -91,7 +91,7 @@ export abstract class Enhancements<
     /**
      * @internal
      */
-    [Symbol.toStringTag]:
+    abstract [Symbol.toStringTag]:
         S extends async
             ? 'EnhancedAsyncGenerator'
             : 'EnhancedGenerator';

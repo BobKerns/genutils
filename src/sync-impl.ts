@@ -1132,7 +1132,7 @@ export abstract class EnhancedGenerator<T, TReturn, TNext>
         Iterable<T>,
         Iterator<T, TReturn, TNext>
 {
-    [Symbol.toStringTag]: 'EnhancedGenerator';
+    abstract [Symbol.toStringTag]: 'EnhancedGenerator';
 }
 
 /**
