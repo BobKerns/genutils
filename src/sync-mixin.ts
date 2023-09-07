@@ -88,8 +88,8 @@ export function Mixin<
         concat<A>(...gens: Genable<A, 'sync', void, void>[]) {
             return this.#iter().concat<A>(...gens);
         }
-        reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, 'sync'>): ReturnValue<A, 'sync'>;
-        reduce<A, T, TReturn = T, TNext = T>(f: Reducer<A, T, A, 'sync'>, init: A): ReturnValue<A, 'sync'>;
+        reduce<A>(f: Reducer<A, T, T, 'sync'>): ReturnValue<A, 'sync'>;
+        reduce<A>(f: Reducer<A, T, A, 'sync'>, init: A): ReturnValue<A, 'sync'>;
         reduce<A>(f: Reducer<A, T, A, 'sync'>, init?: A): ReturnValue<A, 'sync'>;
         reduce<A>(f: any, init?: any): ReturnValue<A, 'sync'> | ReturnValue<A, 'sync'> | ReturnValue<A, 'sync'> {
             return this.#iter().reduce(f, init);

@@ -694,7 +694,7 @@ class Async_ implements GeneratorOps<async> {
      * @param f
      * @param gen
      */
-    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, async>, gen: Genable<T, async, TReturn, TNext>):
+    reduce<A, T>(f: Reducer<A, T, T, async>, gen: Genable<T, async, void, void>):
         A;
 
     /**

@@ -206,14 +206,14 @@ export abstract class Enhancements<
      * because there is no array.
      * @param f
      */
-    reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, S>): ReturnValue<A, S>;
+    reduce<A>(f: Reducer<A, T, T, S>): ReturnValue<A, S>;
     /**
      * Like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array") is omitted
      * because there is no array.
      * @param f
      * @param init
      */
-    reduce<A, T, TReturn = T, TNext = T>(f: Reducer<A, T, A, S>, init: A): ReturnValue<A, S>;
+    reduce<A>(f: Reducer<A, T, A, S>, init: A): ReturnValue<A, S>;
     reduce<A>(f: Reducer<A, T, A, S>, init?: A): ReturnValue<A, S> {
         return this._impl.reduce<A, T, TReturn, TNext>(f, init as A, this);
     }
