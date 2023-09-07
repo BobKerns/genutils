@@ -366,7 +366,7 @@ export const doCatch = <A extends any[], R>(f: (...args: A) => R, onError?: (e: 
         try {
             return f(...args);
         } catch (e) {
-            return onError?.(e);
+            return onError?.(e as Error);
         }
     };
 };

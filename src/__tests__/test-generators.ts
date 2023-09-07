@@ -45,7 +45,7 @@ function gen(max: number): TestGen<number, Sync.type> {
                 try {
                     yield i;
                 } catch (e) {
-                    result.did_throw = e;
+                    result.did_throw =  e as Error;
                     throw e;
                 }
             }
@@ -93,7 +93,7 @@ function genAsync(max: number): TestGen<number, Async.type> {
                 try {
                     yield i;
                 } catch (e) {
-                    result.did_throw = e;
+                    result.did_throw = e as Error;
                     throw e;
                 }
             }
@@ -114,7 +114,7 @@ const testThrowAsync = async (f: (g: TestGen<number, Async.type>) => AsyncGenera
     try {
         await g.throw(new Error(`foo`));
     } catch (e) {
-        expect((_: any) => Throw(e))
+        expect((_: any) => Throw(e as Error))
             .toThrow();
     }
     expect(tg.did_throw).toBeInstanceOf(Error);
@@ -461,7 +461,7 @@ describe('Enhanced Generators', () => {
                 try {
                     await Async.enhance([]).reduce((acc: number, v) => acc + v);
                 } catch (e) {
-                    expect((_: any) => Throw(e))
+                    expect((_: any) => Throw(e  as Error))
                             .toThrow(TypeError);
                 }
             });

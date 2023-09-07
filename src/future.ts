@@ -73,8 +73,8 @@ export class Future<T> extends Promise<T> {
                 this.#accept?.(this.#result);
                 return this.#result;
             } catch (e) {
-                this.#error = e;
-                this.#reject?.(e);
+                this.#error = e as Error;
+                this.#reject?.(e as Error);
                 throw e;
             } finally {
                 this.#fn = undefined;
