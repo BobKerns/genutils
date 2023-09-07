@@ -103,8 +103,8 @@ export function Mixin<
         repeatLast(max: number = Number.MAX_SAFE_INTEGER): Enhanced<T, 'sync', void | TReturn, TNext> {
             return this.#iter().repeatLast(max);
         }
-        repeat<N>(value: N, repetitions: number = Number.MAX_SAFE_INTEGER): Enhanced<T | N, 'sync', void, TNext> {
-            return this.#iter().repeat(value, repetitions);
+        repeat<N>(value: N, repetitions: number = Number.MAX_SAFE_INTEGER): Enhanced<T | N, 'sync', void, void> {
+            return this.#iter().repeat<N>(value, repetitions);
         }
         join(sep: string = ''): ReturnValue<string, 'sync'> {
             return this.#iter().join(sep);

@@ -163,7 +163,7 @@ export interface IEnhancements<
      * @param repetitions The number repetitions; the default is infinite.
      */
 
-    repeat<N>(value: N, repetitions?: number): Enhanced<T | N, S, void, TNext> ;
+    repeat<N>(value: N, repetitions?: number): Enhanced<T | N, S, void, void> ;
 
     /**
      * Trivial, but handy, same as **Array.prototype.join**.

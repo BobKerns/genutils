@@ -264,13 +264,13 @@ export abstract class Enhancements<
      * @param repetitions The number repetitions; the default is infinite.
      */
 
-    repeat<N>(value: N, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T | N, S, void, TNext> {
-        const tail = this._impl.repeat<T|N, void, TNext>(value, repetitions);
+    repeat<N>(value: N, repetitions: number = Number.POSITIVE_INFINITY): Enhanced<T | N, S, void, void> {
+        const tail = this._impl.repeat<T|N, void, void>(value, repetitions);
         const result = this._impl.concat(
-            this as Genable<T|N, S, undefined, TNext>,
-            tail as Genable<T|N, S, undefined, TNext>
+            this as Genable<T|N, S, undefined, void>,
+            tail as Genable<T|N, S, undefined, void>
         );
-        return result as Enhanced<T | N, S, undefined, TNext>;
+        return result as Enhanced<T | N, S, undefined, void>;
     }
 
     /**

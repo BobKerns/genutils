@@ -102,8 +102,8 @@ export function Mixin<
         repeatLast(max: number = Number.MAX_SAFE_INTEGER): Enhanced<T, 'async', void | TReturn, TNext> {
             return this.#iter().repeatLast(max);
         }
-        repeat<N>(value: N, repetitions: number = Number.MAX_SAFE_INTEGER): Enhanced<T | N, 'async', void, TNext> {
-            return this.#iter().repeat(value, repetitions);
+        repeat<N>(value: N, repetitions: number = Number.MAX_SAFE_INTEGER): Enhanced<T | N, 'async', void, void> {
+            return this.#iter().repeat<N>(value, repetitions);
         }
         join(sep: string = ''): ReturnValue<string, 'async'> {
             return this.#iter().join(sep);
