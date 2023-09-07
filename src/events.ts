@@ -82,7 +82,7 @@ export type QueueFactory<T> = () => Queue<T>;
  * _queue_ should return a {@link Queue} object that implements `.length`, `.push()`, `.shift()`, and `.clear()`.
  * The default implementation is [Denque](https://github.com/invertase/denque), which is fast for unbounded size.
  *
- * The returned generator may be enhanced with {@link Async_.enhance|Async.enhance} if desired.
+ * The returned generator may be enhanced with {@link Async.enhance|Async.enhance} if desired.
  *
  * Other {@link QueueFactory} functions provided:
  * * {@link queue1}: returns a "queue" of maximum length 1. Older entries are discarded.
