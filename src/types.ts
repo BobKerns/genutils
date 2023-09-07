@@ -533,9 +533,8 @@ export interface GeneratorOps<S extends SyncType> {
      * Ensures that any supplied generators are terminated when this is terminated.
      * @param gens zero or more additional [[Genable]] to provide values.
      */
-    concat<T, TReturn, TNext>(...gens: Array<Genable<T, S, TReturn, TNext>>):
-        Enhanced<T, S, TReturn | void, TNext>;
-
+    concat<A>(...gens: Genable<A, S, void, void>[]):
+        Enhanced<A, S, void, void>;
 
     /**
      * Reduces **gen** like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array")

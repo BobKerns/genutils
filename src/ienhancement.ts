@@ -12,7 +12,8 @@
  * @module IEnhancements
  */
 
-import { Enhanced, FlatGen, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType } from "./types";
+import type { EnhancedGenerator } from "./sync-impl";
+import type { Enhanced, FlatGen, Genable, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType } from "./types";
 
 /**
  * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
@@ -108,8 +109,8 @@ export interface IEnhancements<
      * @param gens zero or more additional [[Genable]] to provide values.
      */
 
-    concat<T, TReturn, TNext>(...gens: Array<Genable<T, S, TReturn, TNext>>):
-        Enhanced<T, S, TReturn | void, TNext>;
+    concat<A>(...gens: Genable<A, S, void, void>[]):
+        Enhanced<A, S, void, void>;
 
     /**
      * Like `Array.prototype.reduce`, but the 3rd argument to the reducing function ("array") is omitted

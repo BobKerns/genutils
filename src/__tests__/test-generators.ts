@@ -182,7 +182,7 @@ describe('Enhanced Generators', () => {
                     .toEqual([1, 8, 'fred']));
 
             test('multiple', () =>
-                expect(Sync.enhance([1, 8, 'fred']).concat<string|number, unknown, unknown>(['ginger'], [], [7]).asArray())
+                expect(Sync.enhance([1, 8, 'fred']).concat<string|number>(['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
             test('static', () =>
@@ -437,7 +437,7 @@ describe('Enhanced Generators', () => {
                     .toEqual([1, 8, 'fred']));
 
             test('multiple', async () =>
-                expect(await Async.enhance([1, 8, 'fred']).concat<string|number, void, void>(['ginger'], [], [7]).asArray())
+                expect(await Async.enhance([1, 8, 'fred']).concat<string|number>(['ginger'], [], [7]).asArray())
                     .toEqual([1, 8, 'fred', 'ginger', 7]));
 
             test('static', async () =>

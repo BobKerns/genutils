@@ -663,11 +663,11 @@ class Async_ implements GeneratorOps<async> {
      * Ensures that any supplied generators are terminated when this is terminated.
      * @param gens zero or more additional [[Genable]] to provide values.
      */
-    concat<T, TReturn, TNext>(...gens: Array<Genable<T, async, TReturn, TNext>>):
-        Enhanced<T, async, TReturn | void, TNext>
+    concat<A>(...gens: Genable<A, async, void, void>[]):
+        Enhanced<A, async, void, void>
     {
-        let self: Enhanced<T, async, TReturn | void, TNext>;
-        async function* concat(): AsyncGenerator<T, TReturn | void, TNext> {
+        let self: Enhanced<A, async, void, void>;
+        async function* concat(): AsyncGenerator<A, void, void> {
             let i = 0;
             try {
                 for (; i < gens.length; i++) {

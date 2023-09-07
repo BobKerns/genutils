@@ -613,18 +613,15 @@ class Sync_ implements GeneratorOps<sync> {
      * Ensures that any supplied generators are terminated when this is terminated.
      * @param gens zero or more additional [[Genable]] to provide values.
      */
-    concat<
-        T, TReturn, TNext,
-        A extends Array<Genable<T, sync, TReturn, TNext>>
-    >(...gens: A):
-        Enhanced<T, sync, TReturn | void, TNext>
+    concat<A>(...gens: Genable<A, sync, void, void>[]):
+        Enhanced<A, sync, void, void>
     {
-        let self: Enhanced<T, sync, TReturn | void, TNext>;
-        function* concat(): Generator<T, TReturn | void, TNext> {
+        let self: Enhanced<A, sync, void, void>;
+        function* concat(): Generator<A, void, void> {
             let i = 0;
             try {
                 for (; i < gens.length; i++) {
-                    yield* toIterable<T,TReturn, TNext>(gens[i]);
+                    yield* toIterable<A, void, void>(gens[i]);
                 }
             } finally {
                 // Terminate any remaining generators.
@@ -636,7 +633,7 @@ class Sync_ implements GeneratorOps<sync> {
                 }
             }
         }
-        return self = this.enhance(concat()) ;
+        return self = this.enhance<A, void, void>(concat()) ;
     }
 
     /**

@@ -84,8 +84,8 @@ export function Mixin<
         slice(start: number = 0, end: number = Number.MAX_SAFE_INTEGER): Enhanced<T, 'async', TReturn | undefined, TNext> {
             return this.#iter().slice(start, end);
         }
-        concat<T, TReturn, TNext>(...gens: Genable<T, 'async', TReturn, TNext>[]): Enhanced<T, 'async', void | TReturn, TNext> {
-            return this.#iter().concat(...gens);
+        concat<A>(...gens: Genable<A, 'async', void, void>[]) {
+            return this.#iter().concat<A>(...gens);
         }
         reduce<A, T, TReturn, TNext>(f: Reducer<A, T, T, 'async'>): ReturnValue<A, 'async'>;
         reduce<A, T, TReturn = T, TNext = T>(f: Reducer<A, T, A, 'async'>, init: A): ReturnValue<A, 'async'>;

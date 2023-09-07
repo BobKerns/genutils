@@ -15,11 +15,15 @@
  * type that covers both sync and async enhanced generators, use {@link Enhanced} (for,
  * generators) or the {@link GeneratorOps} interface (for the functional interface).
  *
- 
+
  * @module Enhancements
  */
 
-import {Enhanced, FlatGen, Genable, GeneratorOps, IndexedFn, IndexedPredicate, Reducer, ReturnValue, SyncType, UnwrapArray} from "./types";
+import type {
+    Enhanced, FlatGen, Genable,
+    GeneratorOps, IndexedFn, IndexedPredicate,
+    Reducer, ReturnValue, SyncType
+    } from "./types";
 
 type async = 'async';
 
@@ -191,11 +195,9 @@ export abstract class Enhancements<
      * @param gens zero or more additional [[Genable]] to provide values.
      */
 
-    concat<T, TReturn, TNext>(...gens: Array<Genable<T, S, TReturn, TNext>>):
-        Enhanced<T, S, TReturn | void, TNext>
+    concat<A>(...gens: Genable<A, S, void, void>[])
     {
-        const self = this as UnwrapArray<typeof gens>;
-        return this._impl.concat(self, ...gens);
+        return this._impl.concat<A>(this as Genable<A, S, void, void>, ...gens);
     }
 
 
