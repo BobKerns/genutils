@@ -226,10 +226,8 @@ export abstract class Enhancements<
      * @param p predicate to apply to each yielded value.
      * @param thisArg Optional value to supply as context (`this`) for the predicate
      */
-    some<T>(p: IndexedPredicate<T, S>, thisArg?: any): ReturnValue<boolean, S> {
-        // Why is type typecast to Genable needed here?
-        // Yet the seemingly identical case of 'every' below does not?
-        return this._impl.some(p, thisArg, this as Genable<T, S, TReturn, TNext>);
+    some(p: IndexedPredicate<T, S>, thisArg?: any): ReturnValue<boolean, S> {
+        return this._impl.some(p, thisArg, this);
     }
 
     /**
