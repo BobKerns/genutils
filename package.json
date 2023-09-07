@@ -8,6 +8,7 @@
   "jsdelivr": "lib/umd/index.js",
   "unpkg": "lib/umd/index.js",
   "types": "lib/types/index.d.ts",
+  "type": "module",
   "scripts": {
     "build:compile": "tsc --build config src src/__tests__",
     "pretest": "npm run build:compile",
