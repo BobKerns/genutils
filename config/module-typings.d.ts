@@ -19,25 +19,6 @@ declare module "rollup-plugin-terser" {
 
 }
 
-// We supply missing type information for the visualizer plugin.
-
-declare module "rollup-plugin-visualizer" {
-    export interface OpenOptions {
-        app: string | string[];
-        wait: boolean;
-    }
-    export interface VisualizerOptions {
-        filename: string;
-        title: string;
-        sourcemap: boolean;
-        open: boolean;
-        openOptions: OpenOptions;
-    }
-
-    // noinspection JSDuplicatedDeclaration,JSUnusedGlobalSymbols
-    export default function visualizer(options?: Partial<VisualizerOptions>): Plugin;
-}
-
 declare module 'rollup-plugin-external-globals' {
     // noinspection JSUnusedGlobalSymbols,JSDuplicatedDeclaration
     export default function externalGlobals(globals: any): Plugin;

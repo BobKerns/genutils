@@ -9,24 +9,14 @@
 
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import {terser} from 'rollup-plugin-terser';
-import visualizerNoName, {VisualizerOptions} from 'rollup-plugin-visualizer';
-import sourcemaps from 'rollup-plugin-sourcemaps';
+import terser from '@rollup/plugin-terser';
+import { visualizer } from 'rollup-plugin-visualizer';
 import {OutputOptions, RollupOptions} from "rollup";
 import {chain as flatMap} from 'ramda';
-import {join, dirname, basename, extname, relative} from 'path';
+import { join, dirname, basename, extname, relative } from 'path';
+import { readFileSync } from 'fs';
 
 /**
- * The visualizer plugin fails to set the plugin name. We wrap it to remedy that.
- * @param opts
- */
-const visualizer = (opts?: Partial<VisualizerOptions>) => {
-    const noname: Partial<Plugin> = visualizerNoName(opts);
-    return {
-        name: "Visualizer",
-        ...noname
-    };
-}
 
 const mode = process.env.NODE_ENV;
 // noinspection JSUnusedLocalSymbols
@@ -47,7 +37,8 @@ interface Package {
     browser?: string;
     [K: string]: any;
 }
-const pkg: Package  = require('../package.json');
+
+const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as Package;
 
 
 const globals: {[k: string]: string} = {
@@ -134,7 +125,6 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
     output: outputs(pkg)(src, name),
     external: checkExternal,
     plugins: [
-        sourcemaps(),
         resolve({
             // Check for these in package.json
             mainFields: mainFields(pkg, ['module', 'main', 'browser']),
@@ -142,10 +132,10 @@ const options: (src: string, name: string) => RollupOptions = (src, name) => ({
         commonjs({
             extensions: [".js", ".ts"]
         }),
-        ...(!dev && !DISABLE_TERSER) ? [
+        ...!DISABLE_TERSER ? [
             terser({
-            module: true
-        })
+                module: true
+            })
         ] : [],
         visualizer({
             filename: `build/build-stats-${name}.html`,
