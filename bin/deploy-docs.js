@@ -81,7 +81,8 @@ const SITEBASE =
 
 const DOCBASE = `${SITEBASE}/docs`
 
-const marked = require('marked');
+import {marked} from 'marked';
+
 marked.setOptions({
     renderer: new marked.Renderer(),
     highlight: function(code, language) {
