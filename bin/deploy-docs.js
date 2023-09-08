@@ -32,6 +32,8 @@ const PROJECT = 'genutils';
 const VERSION = pkg.version;
 const TAG = github ? `v${VERSION}` : 'local';
 
+console.log(`Deploying ${PROJECT} ${VERSION} as ${TAG}`);
+
 import * as fs from 'fs/promises';
 const copyFile = fs.copyFile;
 const readdir = fs.readdir;
@@ -155,10 +157,15 @@ const convertContent = async (content, htmlFile, title) => {
     return htmlFile;
 };
 
-const releases = async () =>
-    (await (await fetch(`https://api.github.com/repos/BobKerns/${PROJECT}/releases`))
-        .json())
-        .filter(e => e.published_at > '2020-05-29T18:25:38Z')
+const releaseList = async () => {
+    const url = `https://api.github.com/repos/BobKerns/${PROJECT}/releases`;
+    console.log(`Fetching releases from ${url}`)
+    const releases = await (await fetch(url)).json();
+    return releases.filter(e => e.published_at > '2020-05-29T18:25:38Z');
+}
+
+const formatReleases = (releases) =>
+    releases
         .map(r => `* [${r.name}](https://bobkerns.github.io/${PROJECT}/doc${PROJECT}s/${r.tag_name}/api/index.html) ${r.prerelease ? ' (prerelease)' : ''}`)
         .join('\n');
 
@@ -166,10 +173,9 @@ const Throw = m => {
     throw new Error(m);
 };
 
-const thisRelease = async(tag) =>
+const thisRelease = (tag, releases) =>
     github ?
-        (await (await fetch('https://api.github.com/repos/BobKerns/${{PROJECT}/releases'))
-            .json())
+        releases
             .filter(e => e.tag_name === tag)
             [0] || Throw(`No release tagged ${tag} found.`)
         : {name: 'Local Build', body: 'Local build'} // fake release
@@ -192,13 +198,14 @@ const run = async () => {
         ['README.md', `GenUtils`]
     ].map(([f, title, f2]) =>
         convert(join(ROOT, f), f2 || join(docs, f), title)));
-    const release_body = await releases();
+    const releases = await releaseList();
+    const release_body = formatReleases(releases);
     const release_page = `# Generator Utility (genutils) release documentation
 ${!github ? `* [local](http://localhost:5000/docs/local/index.html)` : ``}
 * [CHANGELOG](./CHANGELOG.html)
 ${release_body}`;
     await convertContent(release_page, join(docs, 'index.html'), "Generator Utility Releases");
-    const release = await thisRelease(TAG);
+    const release = thisRelease(TAG, releases);
     const release_landing = `# ${release.name}
     ${release.body || ''}
 
