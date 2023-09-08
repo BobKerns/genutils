@@ -57,10 +57,6 @@ import { promisify } from 'util';
 import * as hljs from 'highlight.js';
 import fetch from 'node-fetch';
 
-const join = path.join;
-const resolve = path.resolve;
-const dirname = path.dirname;
-const basename = path.basename;
 
 const execFile = promisify(child_process.execFile);
 
