@@ -76,7 +76,7 @@ const DOCS =
 
 const SITEBASE =
     github
-        ? '/${PROJECT}'
+        ? `/${PROJECT}`
         : '/';
 
 const DOCBASE = `${SITEBASE}/docs`
@@ -156,7 +156,7 @@ const convertContent = async (content, htmlFile, title) => {
 };
 
 const releases = async () =>
-    (await (await fetch('https://api.github.com/repos/BobKerns/${PROJECT}/releases'))
+    (await (await fetch(`https://api.github.com/repos/BobKerns/${PROJECT}/releases`))
         .json())
         .filter(e => e.published_at > '2020-05-29T18:25:38Z')
         .map(r => `* [${r.name}](https://bobkerns.github.io/${PROJECT}/doc${PROJECT}s/${r.tag_name}/api/index.html) ${r.prerelease ? ' (prerelease)' : ''}`)
