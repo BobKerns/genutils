@@ -23,6 +23,8 @@
  * is translated to HTML.
  */
 
+import { readFileSync } from 'fs';
+
 const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
 const github = process.env['GITHUB_WORKSPACE'];
 const PROJECT = 'genutils';
@@ -74,7 +76,7 @@ const DOCS =
 
 const SITEBASE =
     github
-        ? '/genutils'
+        ? '/${PROJECT}'
         : '/';
 
 const DOCBASE = `${SITEBASE}/docs`
@@ -153,10 +155,10 @@ const convertContent = async (content, htmlFile, title) => {
 };
 
 const releases = async () =>
-    (await (await fetch('https://api.github.com/repos/BobKerns/genutils/releases'))
+    (await (await fetch('https://api.github.com/repos/BobKerns/${PROJECT}/releases'))
         .json())
         .filter(e => e.published_at > '2020-05-29T18:25:38Z')
-        .map(r => `* [${r.name}](https://bobkerns.github.io/genutils/docs/${r.tag_name}/api/index.html) ${r.prerelease ? ' (prerelease)' : ''}`)
+        .map(r => `* [${r.name}](https://bobkerns.github.io/${PROJECT}/doc${PROJECT}s/${r.tag_name}/api/index.html) ${r.prerelease ? ' (prerelease)' : ''}`)
         .join('\n');
 
 const Throw = m => {
@@ -165,7 +167,7 @@ const Throw = m => {
 
 const thisRelease = async(tag) =>
     github ?
-        (await (await fetch('https://api.github.com/repos/BobKerns/genutils/releases'))
+        (await (await fetch('https://api.github.com/repos/BobKerns/${{PROJECT}/releases'))
             .json())
             .filter(e => e.tag_name === tag)
             [0] || Throw(`No release tagged ${tag} found.`)
@@ -201,8 +203,8 @@ ${release_body}`;
 
 * [API documentation](api/index.html)
 * [CHANGELOG](../CHANGELOG.html)
-* [GitHub](https://github.com/BobKerns/genutils.git)
-* [GitHub ${TAG} tree](https://github.com/BobKerns/genutils.git/tree/${TAG}/)
+* [GitHub](https://github.com/BobKerns/${PROJECT}.git)
+* [GitHub ${TAG} tree](https://github.com/BobKerns/${PROJECT}.git/tree/${TAG}/)
 `;
     await convertContent(release_landing, join(target, 'index.html'), release.name);
     const copyTree = async (from, to) => {
