@@ -3,7 +3,7 @@
  * @module physics-math
  * Copyright 2020 by Bob Kerns. Licensed under MIT license.
  *
- * Github: https://github.com/BobKerns/physics-math
+ * Github: https://github.com/BobKerns/genutils
  */
 
 /*
@@ -23,14 +23,14 @@
  * is translated to HTML.
  */
 
-const pkg = require('../package.json');
+const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
 const github = process.env['GITHUB_WORKSPACE'];
+const PROJECT = 'genutils';
 
 const VERSION = pkg.version;
 const TAG = github ? `v${VERSION}` : 'local';
 
-const fs = require('fs/promises');
-const util = require('util');
+import * as fs from 'fs/promises';
 const copyFile = fs.copyFile;
 const readdir = fs.readdir;
 const mkdir = async d => {
@@ -50,14 +50,19 @@ const mkdir = async d => {
 const readFile = async f => fs.readFile(f, 'utf8');
 const writeFile = async (f, data) => fs.writeFile(f, data, 'utf8');
 
-const path = require('path');
+
+import { join, resolve, dirname, basename } from 'path';
+import * as child_process from 'child_process';
+import { promisify } from 'util';
+import * as hljs from 'highlight.js';
+import fetch from 'node-fetch';
+
 const join = path.join;
 const resolve = path.resolve;
 const dirname = path.dirname;
 const basename = path.basename;
 
-const child_process = require('child_process');
-const execFile = util.promisify(child_process.execFile);
+const execFile = promisify(child_process.execFile);
 
 const hljs = require('highlight.js');
 
@@ -67,7 +72,7 @@ const fetch = require('node-fetch');
  * The root of our repo
  * @type {string}
  */
-const ROOT = join(process.mainModule.path, '..');
+const ROOT = join(import.meta.url, '../..').replace(/^file:/, '');
 
 // In the workflow, point this to where we checked out the gh-pages branch.
 const DOCS =
@@ -189,8 +194,7 @@ const run = async () => {
     await mkdir(target);
     await Promise.all([
         ['CHANGELOG.md', 'Change Log'],
-        ['README.md', `Physics Math / Newton's Spherical Cow`],
-        ['README.md', `Physics Math / Newton's Spherical Cow`, join(target, 'README.html')]
+        ['README.md', `GenUtils`]
     ].map(([f, title, f2]) =>
         convert(join(ROOT, f), f2 || join(docs, f), title)));
     const release_body = await releases();
