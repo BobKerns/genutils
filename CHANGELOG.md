@@ -1,15 +1,25 @@
 # Changelog
 
+## Release 1.0.8
+
+__date: 2023-09-07__
+
+* __FIX__: Make `.reduce((acc, val) ==> ...)` correctly infer the type of `val`.
+* __FIX__: Update to modern Typescript; this may address problems with
+  `some`, `concat`, and `repeat`.
+* __DOC__: Fix broken internal documentation links.
+* Separate ESM exports for submodules (sync, async, events, functions, generators, enhancements, range)
+
 ## Release 1.0.7
 
 ## Release 1.0.6
 
 __date: 2021-08-26__
 
-* **FIX**: Propagate types and sourcemaps
-* **FIX**: Use the right prorotype for Sync.enhance
-* **DEV**: Make the `npm run serve` command be more useful.
-* **DOC**: Various fixes.
+* __FIX__: Propagate types and sourcemaps
+* __FIX__: Use the right prorotype for Sync.enhance
+* __DEV__: Make the `npm run serve` command be more useful.
+* __DOC__: Various fixes.
 
 ## Release 1.0.5
 
