@@ -19,7 +19,7 @@ import { Constructor, Enhanced, Genable, IndexedFn, IndexedPredicate, IteratorVa
 export namespace Async {
 /**
  * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
- * it were an array, in supporting methods such as {@link IEnhancements.map|.map()} and {@link IEnhancements.filter|.filter()}.
+ * it were an array, in supporting methods such as {@link IEnhancements.map | .map()} and {@link IEnhancements.filter | .filter()}.
  *
  * Usage:
  *

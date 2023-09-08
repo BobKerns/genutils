@@ -21,7 +21,7 @@
     "all": "npm run build && npm run build:test && npm run build:docs",
     "clean": "rm -rf build lib docs",
     "prepublishOnly": "NODE_ENV=production npm run build && npm run build:docs && npm run pubdocs",
-    "build:docs": "GRAPHVIZ_DOT=\"$(which dot)\" typedoc  --excludeInternal --out build/docs/api src/",
+    "build:docs": "GRAPHVIZ_DOT=\"$(which dot)\" typedoc  --plugin typedoc-plugin-missing-exports --excludeInternal --out build/docs/api src/",
     "preserve": "npm run build:compile",
     "serve": "serve -l 3030 -C",
     "predocs": "npm install && npm run build:compile && npm run build:docs",
@@ -73,6 +73,7 @@
     "terser": "^5.19.4",
     "ts-jest": "^29.1.1",
     "typedoc": "^0.25.1",
+    "typedoc-plugin-missing-exports": "^2.1.0",
     "typescript": "^5.2.2",
     "wcsize": "^1.0.0"
   }

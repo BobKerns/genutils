@@ -275,8 +275,8 @@ export abstract class Enhancements<
      * Combines this generator with additional ones, returning a generator that produces a tuple with
      * each of their results, with this generator's result first.
      *
-     * Terminates when any generator terminates. To get other behaviors, use with {@link IEnhancements.repeat|Generator.repeat}
-     * or {@link IEnhancements.repeatLast|Generator.repeatLast}.
+     * Terminates when any generator terminates. To get other behaviors, use with {@link IEnhancements.repeat | EnhancedGenerator.repeat}
+     * or {@link IEnhancements.repeatLast | EnhancedGenerator.repeatLast}.
      * @param gens
      */
 

@@ -178,13 +178,15 @@ export namespace Async {
      * @typeParam TReturn the type of values returned in the iteration result when the generator terminates
      * @typeParam TNext the type of value which can be passed to `.next(val)`.
      *
-     * See also {@link Sync.Generator}
+     * See also {@link EnhancedGenerator | Sync.Generator}
      */
     export type Generator<T,TReturn, TNext> = EnhancedAsyncGenerator<T, TReturn, TNext>;
 
     /**
-     * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class that implements {@link IEnhancements}, allowing one to treat it as if
-     * it were an array, in supporting methods such as {@link IEnhancements.map|.map()} and {@link IEnhancements.filter|.filter()}.
+     * Given a class that implements `Iterable<T, TReturn, TNext>`, this returns a class
+     * that implements {@link IEnhancements}, allowing one to treat it as if
+     * it were an array, in supporting methods such as {@link IEnhancements.map | .map()}
+     * and {@link IEnhancements.filter | .filter()}.
      *
      * Usage:
      *

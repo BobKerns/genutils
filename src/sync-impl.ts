@@ -934,8 +934,8 @@ class Sync_ implements GeneratorOps<sync> {
     /**
      * Combines generators, returning a generator that produces a tuple with each of their results.
      *
-     * Terminates when the first generator terminates. To get other behaviors, use with [[EnhancedGenerator.repeat]] or
-     * [[EnhancedGenerator.repeatLast]].
+     * Terminates when the first generator terminates. To get other behaviors, use with {@link EnhancedGenerator.repeat} or
+     * {@link EnhancedGenerator.repeatLast}.
      * @param gens
      */
 

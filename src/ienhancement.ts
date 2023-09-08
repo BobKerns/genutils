@@ -6,8 +6,8 @@
 
 /**
  * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
- * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map|.map()}
- * or {@link IEnhancements.filter|.filter()}.
+ * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map | .map()}
+ * or {@link IEnhancements.filter | .filter()}.
  *
  * @module IEnhancements
  */
@@ -17,8 +17,8 @@ import type { Enhanced, FlatGen, Genable, IndexedFn, IndexedPredicate, Reducer, 
 
 /**
  * Interface for enhanced operations, distinct from implementation. These apply to `Iterable` or `AsyncIterable` objects,
- * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map|.map()}
- * or {@link IEnhancements.filter|.filter()}.
+ * giving them the capability of acting similarly to lists, directly invoking methods like {@link IEnhancements.map | .map()}
+ * or {@link IEnhancements.filter | .filter()}.
  *
  * The type parameter _S_ is either 'sync' or 'async', and controls whether synchronous or asynchronous interfaces are
  * used. The {@link ReturnValue|ReturnValue<T,S>} expands to _T_ or `Promise<`_T_`>`, accordingly.
