@@ -5,13 +5,23 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.5.0/styles/xcode.css" integrity="sha256-OI7B0pICACICPVbs30FdQ/l6qL8TnsfhyGAdg5m5NzQ=" crossorigin="anonymous">
 </head>
 <body><h1 id="changelog">Changelog</h1>
+<h2 id="release-108">Release 1.0.8</h2>
+<p><strong>date: 2023-09-07</strong></p>
+<ul>
+<li><strong>FIX</strong>: Make <code>.reduce((acc, val) ==&gt; ...)</code> correctly infer the type of <code>val</code>.</li>
+<li><strong>FIX</strong>: Update to modern Typescript; this may address problems with
+<code>some</code>, <code>concat</code>, and <code>repeat</code>.</li>
+<li><strong>DOC</strong>: Fix broken internal documentation links.</li>
+<li>Separate ESM exports for submodules (sync, async, events, functions, generators, enhancements, range)</li>
+</ul>
+<h2 id="release-107">Release 1.0.7</h2>
 <h2 id="release-106">Release 1.0.6</h2>
 <p><strong>date: 2021-08-26</strong></p>
 <ul>
-<li>FIX: Propagate types and sourcemaps</li>
-<li>FIX: Use the right prorotype for Sync.enhance</li>
-<li>DEV: Make the <code>npm run serve</code> command be more useful.</li>
-<li>DOC: Various fixes.</li>
+<li><strong>FIX</strong>: Propagate types and sourcemaps</li>
+<li><strong>FIX</strong>: Use the right prorotype for Sync.enhance</li>
+<li><strong>DEV</strong>: Make the <code>npm run serve</code> command be more useful.</li>
+<li><strong>DOC</strong>: Various fixes.</li>
 </ul>
 <h2 id="release-105">Release 1.0.5</h2>
 <p><strong>date: 2021-08-24</strong></p>
