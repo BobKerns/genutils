@@ -58,7 +58,7 @@ const writeFile = async (f, data) => fs.writeFile(f, data, 'utf8');
 import { join, resolve, dirname, basename } from 'path';
 import * as child_process from 'child_process';
 import { promisify } from 'util';
-import * as hljs from 'highlight.js';
+import hljs from 'highlight.js';
 import fetch from 'node-fetch';
 
 
@@ -87,9 +87,9 @@ import {marked} from 'marked';
 
 marked.setOptions({
     renderer: new marked.Renderer(),
-    highlight: function(code, language) {
-        const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-        return hljs.highlight(validLanguage, code).value;
+    highlight: function(code, languageName) {
+        const language = hljs.getLanguage(languageName) ? languageName : 'plaintext';
+        return hljs.highlight(code, {language}).value;
     },
     gfm: true,
 });
