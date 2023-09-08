@@ -60,10 +60,6 @@ import fetch from 'node-fetch';
 
 const execFile = promisify(child_process.execFile);
 
-const hljs = require('highlight.js');
-
-const fetch = require('node-fetch');
-
 /**
  * The root of our repo
  * @type {string}
