@@ -236,6 +236,7 @@ ${release_body}`;
         await exec('git', 'add', target);
         await exec('git', 'add', 'docs/index.html');
         await exec('git', 'add', 'docs/CHANGELOG.html');
+        await exec('git', 'status');
         await exec('git', 'commit', '-m', `Deploy documentation for ${TAG}.`);
         await exec('git', 'push');
     }
