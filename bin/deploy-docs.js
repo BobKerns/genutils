@@ -128,7 +128,7 @@ const html = (title, body) => `<!DOCTYPE html>
 <html>
 <head>
 <title>${title}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.5.0/styles/xcode.css" integrity="sha256-OI7B0pICACICPVbs30FdQ/l6qL8TnsfhyGAdg5m5NzQ=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/xcode.min.css" integrity="sha512-hDoXdEZ9LKsZWAWm3LMIeAJT///uSvllP7dCOB4lV/cfSb/sv1yhT+q6ORYKubs1keK/w08GKTrYB0UU8dzhvw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>${body}</body>
 </html>`;
